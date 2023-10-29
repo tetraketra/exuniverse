@@ -11,17 +11,19 @@ CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    password_pepper TEXT NOT NULL,
-    profile_name TEXT NOT NULL, -- automatically defaults to username
+    password_salt TEXT NOT NULL,
+    email TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT 0,
+    profile_name TEXT, -- automatically defaults to username
     profile_about TEXT,
-    profile_pic_link TEXT NOT NULL -- should default if not specified
+    profile_pic_link TEXT -- should default if not specified
 );
 CREATE TRIGGER users_default_profile_name_to_username
     AFTER INSERT ON users
     FOR EACH ROW
     WHEN NEW.profile_name IS NULL
     BEGIN
-        UPDATE cards SET profile_name = NEW.username WHERE rowid = NEW.rowid;
+        UPDATE users SET profile_name = NEW.username WHERE rowid = NEW.rowid;
     END;
 
 CREATE TABLE template_types (
@@ -60,7 +62,6 @@ VALUES
     (2, 'Normal'),
     (2, 'Continuous'),
     (2, 'Counter');
-
 
 CREATE TABLE template_attributes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -124,22 +125,22 @@ CREATE TABLE cards (
     monster_atk INTEGER,
     monster_def INTEGER,
     monster_type_id INTEGER,
-    monster_is_gemini INTEGER DEFAULT 0 NOT NULL,
-    monster_is_spirit INTEGER DEFAULT 0 NOT NULL,
-    monster_is_toon INTEGER DEFAULT 0 NOT NULL,
-    monster_is_tuner INTEGER DEFAULT 0 NOT NULL,
-    monster_is_union INTEGER DEFAULT 0 NOT NULL,
-    monster_is_flip INTEGER DEFAULT 0 NOT NULL,
+    monster_is_gemini BOOLEAN DEFAULT 0 NOT NULL,
+    monster_is_spirit BOOLEAN DEFAULT 0 NOT NULL,
+    monster_is_toon BOOLEAN DEFAULT 0 NOT NULL,
+    monster_is_tuner BOOLEAN DEFAULT 0 NOT NULL,
+    monster_is_union BOOLEAN DEFAULT 0 NOT NULL,
+    monster_is_flip BOOLEAN DEFAULT 0 NOT NULL,
 
     pendulum_scale INTEGER,
     pendulum_effect TEXT,
 
     link_arrows TEXT -- like "01100111", read in clockwise spiral from top-left
 
-    ocg INTEGER DEFAULT 0, -- y/n in ocg
+    ocg BOOLEAN DEFAULT 0, -- y/n in ocg
     ocg_date TEXT,
     ocg_limit INTEGER,
-    tcg INTEGER DEFAULT 0, -- y/n in tcg
+    tcg BOOLEAN DEFAULT 0, -- y/n in tcg
     tcg_date TEXT,
     tcg_limit INTEGER,
     exu_limit INTEGER,

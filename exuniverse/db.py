@@ -3,6 +3,10 @@ import sqlite3
 import click
 from flask import current_app, g, Flask
 
+def query_db(conn: sqlite3.Connection, query: str) -> list[dict]:
+    c: sqlite3.Cursor = conn.cursor()
+    c.execute(query)
+    return c.fetchall()
 
 def get_db() -> sqlite3.Connection:
     """
