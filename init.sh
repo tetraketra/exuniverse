@@ -1,3 +1,2 @@
 #!/bin/sh
-
-flask --app app init-db
+flask --app exuniverse init-db

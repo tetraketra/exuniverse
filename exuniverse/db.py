@@ -52,7 +52,7 @@ def close_db(e=None):
         db.close()
 
 
-def init_app(app: Flask):
+def link_to_app(app: Flask):
     """
     Registers `db.py` functions to `app` from `__init__.py`.
     """

@@ -1,2 +1,2 @@
 . .venv/bin/activate
-flask --app app run --debug
+flask --app exuniverse run --debug
