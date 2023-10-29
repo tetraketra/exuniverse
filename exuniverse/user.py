@@ -10,7 +10,7 @@ from .db import query_db
 @dataclass_json
 @dataclass
 class User():
-    id: int
+    id: str
     username: str
     password_hashed: str
     password_salt: str
@@ -29,7 +29,7 @@ class User():
             f"SELECT * FROM users WHERE id = {user_id}"
         )[0]
         return User(
-            id=int(user_id), email=d['email'], username=d['username'],
+            id=user_id, email=d['email'], username=d['username'],
             profile_name=d['profile_name'], profile_about=d['profile_about'],
             profile_pic_link=d['profile_pic_link'], is_active=d['is_active'],
             password_hashed=d['password'], password_salt=d['password_salt']
