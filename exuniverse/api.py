@@ -135,7 +135,7 @@ class Card(Resource):
         sql: str = f""" SELECT * FROM cards WHERE id = {args['id']}; """
         
         try:
-            return dict( query_db(conn, sql)[0] ) # SUCCESS
+            return { **query_db(conn, sql)[0] } # SUCCESS
         
         except:
             abort(404, message=f"No card found with id={args['id']}")
@@ -143,7 +143,6 @@ class Card(Resource):
         
     def post(self):
         args, conn = api_call_setup(request=request, schema=PostPutCard_InputSchema)
-        curs: sqlite3.Cursor = conn.cursor()
         sql: str = f""" 
             INSERT INTO cards (
                 name, treated_as, effect, pic,

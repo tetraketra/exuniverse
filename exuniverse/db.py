@@ -23,15 +23,11 @@ def query_db(
     else:
         curs.execute(sql)
 
-    if method == "fetch":
-        results = curs.fetchall()
-        curs.close()
-        return results
-    else:
-        conn.commit()
-        curs.close()
-        return curs.lastrowid
+    results = curs.fetchall() if method == "fetch" else (conn.commit(), curs.lastrowid)[1]
+    curs.close()
     
+    return results
+
 
 def get_db() -> sqlite3.Connection:
     """
