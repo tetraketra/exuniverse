@@ -1,12 +1,28 @@
 import sqlite3
+from typing import Literal
+from typing import NewType
 
 import click
 from flask import current_app, g, Flask
 
-def query_db(conn: sqlite3.Connection, query: str) -> list[dict]:
-    c: sqlite3.Cursor = conn.cursor()
-    c.execute(query)
-    return c.fetchall()
+
+lastrowid = NewType('lastrowid', int)
+def query_db(conn: sqlite3.Connection, sql: str, vals: str = None, method: Literal["fetch", "commit"] = "fetch") -> list[dict] | lastrowid | None:
+    curs: sqlite3.Cursor = conn.cursor()
+    if vals is not None:
+        curs.execute(sql, vals)
+    else:
+        curs.execute(sql)
+
+    if method == "fetch":
+        results = curs.fetchall()
+        curs.close()
+        return results
+    else:
+        conn.commit()
+        curs.close()
+        return curs.lastrowid
+    
 
 def get_db() -> sqlite3.Connection:
     """

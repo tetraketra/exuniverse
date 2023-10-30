@@ -10,3 +10,10 @@ dist/
 build/
 *.egg-info/
 *.env
+
+*.pem
+*.key
+*.crt
+*.csr
+*.key.org
+cookies.txt

@@ -13,7 +13,7 @@ CREATE TABLE users (
     password TEXT NOT NULL,
     password_salt TEXT NOT NULL,
     email TEXT NOT NULL,
-    is_active BOOLEAN DEFAULT 0,
+    is_active BOOLEAN DEFAULT 1, -- FIXME: DEFAULT 0 and do email validation!
     profile_name TEXT, -- automatically defaults to username
     profile_about TEXT,
     profile_pic_link TEXT -- should default if not specified
@@ -113,41 +113,41 @@ VALUES
 CREATE TABLE cards (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    name TEXT NOT NULL,
+    name TEXT UNIQUE NOT NULL,
     treated_as TEXT, -- automatically defaults to name
     effect TEXT,
-    pic TEXT NOT NULL, -- link to a 480x480 texture, defaults before specified
+    pic TEXT, -- link to a 480x480 texture, defaults before specified
 
     template_type_id INTEGER NOT NULL,
     template_subtype_id INTEGER NOT NULL,
-    template_attribute_id INTEGER,
+    template_attribute_id INTEGER NOT NULL,
 
     monster_atk INTEGER,
     monster_def INTEGER,
     monster_type_id INTEGER,
-    monster_is_gemini BOOLEAN DEFAULT 0 NOT NULL,
-    monster_is_spirit BOOLEAN DEFAULT 0 NOT NULL,
-    monster_is_toon BOOLEAN DEFAULT 0 NOT NULL,
-    monster_is_tuner BOOLEAN DEFAULT 0 NOT NULL,
-    monster_is_union BOOLEAN DEFAULT 0 NOT NULL,
-    monster_is_flip BOOLEAN DEFAULT 0 NOT NULL,
+    monster_is_gemini BOOLEAN DEFAULT 0,
+    monster_is_spirit BOOLEAN DEFAULT 0,
+    monster_is_toon BOOLEAN DEFAULT 0,
+    monster_is_tuner BOOLEAN DEFAULT 0,
+    monster_is_union BOOLEAN DEFAULT 0,
+    monster_is_flip BOOLEAN DEFAULT 0,
 
     pendulum_scale INTEGER,
     pendulum_effect TEXT,
 
-    link_arrows TEXT -- like "01100111", read in clockwise spiral from top-left
+    link_arrows TEXT, -- like "01100111", read in clockwise spiral from top-left
 
     ocg BOOLEAN DEFAULT 0, -- y/n in ocg
-    ocg_date TEXT,
+    ocg_date DATETIME,
     ocg_limit INTEGER,
     tcg BOOLEAN DEFAULT 0, -- y/n in tcg
-    tcg_date TEXT,
+    tcg_date DATETIME,
     tcg_limit INTEGER,
     exu_limit INTEGER,
 
-    created_by_id INTEGER NOT NULL,
-    date_created DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, -- auto-gen!
-    date_updated DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, -- auto-gen and auto-update!
+    created_by_id INTEGER,
+    date_created DATETIME DEFAULT CURRENT_TIMESTAMP, -- auto-gen!
+    date_updated DATETIME DEFAULT CURRENT_TIMESTAMP, -- auto-gen and auto-update!
 
     FOREIGN KEY(template_type_id) REFERENCES template_types(id),
     FOREIGN KEY(template_subtype_id) REFERENCES template_subtypes(id),
@@ -168,3 +168,4 @@ CREATE TRIGGER cards_update_date_updated
     BEGIN
         UPDATE cards SET date_updated = CURRENT_TIMESTAMP WHERE rowid = NEW.rowid;
     END;
+-- TODO: reject invalid combinations (like tuner spell)?
