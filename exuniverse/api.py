@@ -73,7 +73,6 @@ class RegisterUser_InputSchema(Schema):
 class RegisterUser(Resource):    
     def post(self):
         args, conn = api_call_setup(request=request, schema=RegisterUser_InputSchema)
-        curs: sqlite3.Cursor = conn.cursor()
         salt: str = binascii.b2a_hex(os.urandom(5)).decode('utf-8')
         sql: str = f"""
             INSERT INTO users (
