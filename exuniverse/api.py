@@ -133,6 +133,8 @@ class Card(Resource):
     def get(self):
         args, conn = api_call_setup(request=request, schema=GetCard_InputSchema)
         sql: str = f""" SELECT * FROM cards WHERE id = {args['id']}; """
+
+        # TODO: alternate sql for joined (text instead of foreign ids) fetch method
         
         try:
             return { **query_db(conn, sql)[0] } # SUCCESS
