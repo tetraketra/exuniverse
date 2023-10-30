@@ -17,7 +17,14 @@ from .login_manager import login_manager
 
 api = Api(app)
 
-def url_has_allowed_host_and_scheme(url: str, allowed_hosts: str | set[str], require_https: bool = True):
+def url_has_allowed_host_and_scheme(
+    url: str, allowed_hosts: str | set[str], require_https: bool = True
+) -> bool:
+    """
+    Use this to validate the `next` url property on a redirection (such as
+    after login) to protect against [open redirection](https://portswigger.net/kb/issues/00500100_open-redirection-reflected).
+    """
+    
     if url is not None:
         url = url.strip()
     if not url:
@@ -43,13 +50,19 @@ def url_has_allowed_host_and_scheme(url: str, allowed_hosts: str | set[str], req
     return True
 
 
-def api_call_setup(request: Request, schema: Schema) -> tuple[dict, sqlite3.Connection]:
+def api_call_setup(
+    request: Request, schema: Schema
+) -> tuple[dict, sqlite3.Connection]:
+    """
+    Run this at the beginning of each Flask-RESTful GET/PUT/POST method to
+    fetch the JSON input arguments and db connection object `conn`. 
+    """
+
+    conn: sqlite3.Connection = get_db()
     args = defaultdict(lambda: None, request.get_json(force=True))
     if er := schema().validate(request.json):
         abort(400, message=f"Argument parsing failed: {er}")
     
-    conn: sqlite3.Connection = get_db()
-
     return args, conn
 
     

@@ -7,9 +7,18 @@ from flask import current_app, g, Flask
 
 
 lastrowid = NewType('lastrowid', int)
-def query_db(conn: sqlite3.Connection, sql: str, vals: str = None, method: Literal["fetch", "commit"] = "fetch") -> list[dict] | lastrowid | None:
+def query_db(
+    conn: sqlite3.Connection, 
+    sql: str, vals: tuple = (None,), 
+    method: Literal["fetch", "commit"] = "fetch"
+) -> list[dict] | lastrowid | None:
+    """
+    Run a query and either fetch results as a list of dicts
+    or commit the changes.
+    """
+    
     curs: sqlite3.Cursor = conn.cursor()
-    if vals is not None:
+    if vals != (None,):
         curs.execute(sql, vals)
     else:
         curs.execute(sql)
@@ -61,7 +70,7 @@ def init_db_command():
     click.echo('[Re]initialized the database.')
 
 
-def close_db(e=None):
+def close_db(e=None): # not sure if `e` is required, but it's there in the docs ^^;
     """
     Close the database connection at the end of a request.
     """
