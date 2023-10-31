@@ -62,9 +62,9 @@ class PostPutCard_InputSchema(Schema):
 
 class GetCards_InputSchema(Schema):
     name                   = fields.String(required=False)
-    name_method            = fields.String(required=False, default="exact") # "exact" or "like"
+    name_method            = fields.String(required=False, default="like") # "exact" or "like"
     treated_as             = fields.String(required=False)
-    treated_as_method      = fields.String(required=False, default="exact") # "exact" or "like"
+    treated_as_method      = fields.String(required=False, default="like") # "exact" or "like"
     effect                 = fields.String(required=False)
     effect_method          = fields.String(required=False, default="like") # "exact" or "like"
     template_type          = fields.List(cls_or_instance=fields.String,  required=False)
@@ -112,11 +112,11 @@ class GetCards_InputSchema(Schema):
 
     @classmethod
     def parse_monster_atkdef(cls, field: str, val: str) -> str:          
-        val = val.replace(' ', '')  
-
         if not val:
             return ""
         
+        val = val.replace(' ', '')  
+
         if val.isdigit():
             return f"{field} = {val}"
 

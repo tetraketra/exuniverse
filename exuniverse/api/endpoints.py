@@ -228,7 +228,14 @@ class Card(Resource):
 class Cards(Resource):
     def get(self): # TODO FIXME: TESTING
         args, conn = api_call_setup(request=request, schema=GetCards_InputSchema)
+
         _pmad = GetCards_InputSchema.parse_monster_atkdef
+
+        if not args['name_method']: args['name_method'] = "like"
+        if not args['treated_as_method']: args['treated_as_method'] = "like"
+        if not args['effect_method']: args['effect_method'] = "like"
+        if not args['pendulum_effect_method']: args['pendulum_effect_method'] = "like"
+        
         select: str = f"""
                 c.id, c.name, c.treated_as, c.effect, c.pic,
                 tt.template_type, ts.template_subtype, ta.template_attribute,
@@ -254,12 +261,12 @@ class Cards(Resource):
             f"c.treated_as = '{args['treated_as']}'"      * (bool(args['treated_as']) and (args['treated_as_method'] == "exact")),
             f"c.effect like '%{args['effect']}%'" * (bool(args['effect']) and (args['effect_method'] == "like")),
             f"c.effect = '{args['effect']}'"      * (bool(args['effect']) and (args['effect_method'] == "exact")),
-            f"tt.template_type in {*args['template_type'],}" * bool(args['template_type']),
-            f"ts.template_subtype in {*args['template_subtype'],}" * bool(args['template_subtype']),
-            f"ta.template_attribute in {*args['template_attribute'],}" * bool(args['template_attribute']),
+            f"tt.template_type in {*(args['template_type'] or ''),}" * bool(args['template_type']),
+            f"ts.template_subtype in {*(args['template_subtype'] or ''),}" * bool(args['template_subtype']),
+            f"ta.template_attribute in {*(args['template_attribute'] or ''),}" * bool(args['template_attribute']),
             f"{_pmad('c.monster_atk', args['monster_atk'])}" * bool(args['monster_atk']),
             f"{_pmad('c.monster_def', args['monster_def'])}" * bool(args['monster_def']),
-            f"mt.monster_type in {*args['monster_type'],}" * bool(args['monster_type']),
+            f"mt.monster_type in {*(args['monster_type'] or ''),}" * bool(args['monster_type']),
             f"c.monster_is_gemini = {args['monster_is_gemeni']}" * bool(args['monster_is_gemeni']),
             f"c.monster_is_spirit = {args['monster_is_spirit']}" * bool(args['monster_is_spirit']),
             f"c.monster_is_toon = {args['monster_is_toon']}" * bool(args['monster_is_toon']),
@@ -281,8 +288,9 @@ class Cards(Resource):
         sql: str = f"SELECT {select} WHERE {where};"
 
         try:
-            results = query_db(conn=conn, sql=sql, method="select")
-            return results # SUCCESS
+            print(sql)
+            cards = query_db(conn=conn, sql=sql, method="select")
+            return cards # SUCCESS
 
         except sqlite3.Error as er:
             abort(400, message=f"Unhandled SQLite3 error: {er.sqlite_errorname}")

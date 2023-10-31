@@ -7,6 +7,8 @@ DROP TABLE IF EXISTS template_types;
 DROP TABLE IF EXISTS template_attributes;
 DROP TABLE IF EXISTS monster_types;
 
+PRAGMA case_sensitive_like=OFF;
+
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
@@ -113,7 +115,7 @@ VALUES
 CREATE TABLE cards (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    name TEXT UNIQUE NOT NULL,
+    name TEXT UNIQUE NOT NULL COLLATE NOCASE,
     treated_as TEXT, -- automatically defaults to name
     effect TEXT,
     pic TEXT, -- link to a 480x480 texture, defaults before specified
