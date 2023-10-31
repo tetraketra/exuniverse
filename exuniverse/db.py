@@ -10,12 +10,13 @@ last_inserted_rowid = NewType('last_inserted_rowid', int)
 rows_affected = NewType('rows_affected', int)
 def query_db(
     conn: sqlite3.Connection, 
-    sql: str, vals: tuple = (None,), 
+    sql: str, 
+    vals: tuple = (None,), 
     method: Literal["select", "insert", "update"] = "select"
 ) -> list[dict] | last_inserted_rowid | rows_affected:
     """
     Run a query and either fetch results as a list of dicts
-    or commit the changes.
+    or commit the changes. `vals` automatically quotes.
     """
     
     curs: sqlite3.Cursor = conn.cursor()
