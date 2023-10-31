@@ -6,12 +6,13 @@ import click
 from flask import current_app, g, Flask
 
 
-lastrowid = NewType('lastrowid', int)
+last_inserted_rowid = NewType('last_inserted_rowid', int)
+rows_affected = NewType('rows_affected', int)
 def query_db(
     conn: sqlite3.Connection, 
     sql: str, vals: tuple = (None,), 
-    method: Literal["fetch", "commit"] = "fetch"
-) -> list[dict] | lastrowid | None:
+    method: Literal["select", "insert", "update"] = "select"
+) -> list[dict] | last_inserted_rowid | rows_affected:
     """
     Run a query and either fetch results as a list of dicts
     or commit the changes.
@@ -23,11 +24,20 @@ def query_db(
     else:
         curs.execute(sql)
 
-    results = curs.fetchall() if method == "fetch" else (conn.commit(), curs.lastrowid)[1]
-    curs.close()
-    
-    return results
+    match (method):
+        case "insert":
+            conn.commit()
+            results = curs.lastrowid
+            curs.close()
+        case "update":
+            conn.commit()
+            results = curs.rowcount
+            curs.close()
+        case _: # select is default
+            results = [{**row} for row in curs.fetchall()]
+            curs.close()
 
+    return results
 
 def get_db() -> sqlite3.Connection:
     """

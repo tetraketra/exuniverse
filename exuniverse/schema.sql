@@ -27,14 +27,14 @@ CREATE TRIGGER users_default_profile_name_to_username
     END;
 
 CREATE TABLE template_types (
-    id INTEGER PRIMARY KEY, -- non-AUTOINCREMENT for easier viewing of template_types
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     template_type TEXT NOT NULL
 );
-INSERT INTO template_types(id, template_type)
+INSERT INTO template_types(template_type)
 VALUES
-    (0, 'Monster'),
-    (1, 'Spell'),
-    (2, 'Trap');
+    ('Monster'),
+    ('Spell'),
+    ('Trap');
 
 CREATE TABLE template_subtypes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,24 +44,24 @@ CREATE TABLE template_subtypes (
 );
 INSERT INTO template_subtypes(template_type_id, template_subtype)
 VALUES
-    (0, 'Normal'),
-    (0, 'Effect'),
-    (0, 'Ritual'),
-    (0, 'Fusion'),
-    (0, 'Synchro'),
-    (0, 'Xyz'),
-    (0, 'Pendulum'),
-    (0, 'Link'),
-    (0, 'Token'),
     (1, 'Normal'),
-    (1, 'Continuous'),
-    (1, 'Field'),
-    (1, 'Equip'),
-    (1, 'Quick-Spell'),
+    (1, 'Effect'),
     (1, 'Ritual'),
+    (1, 'Fusion'),
+    (1, 'Synchro'),
+    (1, 'Xyz'),
+    (1, 'Pendulum'),
+    (1, 'Link'),
+    (1, 'Token'),
     (2, 'Normal'),
     (2, 'Continuous'),
-    (2, 'Counter');
+    (2, 'Field'),
+    (2, 'Equip'),
+    (2, 'Quick-Spell'),
+    (2, 'Ritual'),
+    (3, 'Normal'),
+    (3, 'Continuous'),
+    (3, 'Counter');
 
 CREATE TABLE template_attributes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -120,7 +120,7 @@ CREATE TABLE cards (
 
     template_type_id INTEGER NOT NULL,
     template_subtype_id INTEGER NOT NULL,
-    template_attribute_id INTEGER NOT NULL,
+    template_attribute_id INTEGER,
 
     monster_atk INTEGER,
     monster_def INTEGER,
@@ -145,7 +145,7 @@ CREATE TABLE cards (
     tcg_limit INTEGER,
     exu_limit INTEGER,
 
-    created_by_id INTEGER,
+    created_by_user_id INTEGER,
     date_created DATETIME DEFAULT CURRENT_TIMESTAMP, -- auto-gen!
     date_updated DATETIME DEFAULT CURRENT_TIMESTAMP, -- auto-gen and auto-update!
 
@@ -153,7 +153,7 @@ CREATE TABLE cards (
     FOREIGN KEY(template_subtype_id) REFERENCES template_subtypes(id),
     FOREIGN KEY(template_attribute_id) REFERENCES template_attribute(id),
     FOREIGN KEY(monster_type_id) REFERENCES monster_types(id),
-    FOREIGN KEY(created_by_id) REFERENCES users(id)
+    FOREIGN KEY(created_by_user_id) REFERENCES users(id)
 );
 CREATE TRIGGER cards_default_treated_as_to_name
     AFTER INSERT ON cards

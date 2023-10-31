@@ -8,7 +8,7 @@ from . import db
 from . import os_addons
 
 from .app import *
-from .api import *
+from .api import app_api
 from .login_manager import *
 
 
