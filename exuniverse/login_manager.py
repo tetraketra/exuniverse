@@ -1,5 +1,4 @@
 import sqlite3
-from flask import Request
 from flask_login import LoginManager
 
 from .db import get_db
