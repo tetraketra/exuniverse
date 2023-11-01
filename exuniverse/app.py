@@ -16,3 +16,7 @@ app.config.from_mapping( # TODO: config files, actually secret secrets
 
 os_extras.ensure_dir(app.instance_path)
 link_db_to_app(app)
+
+@app.route('/')
+def index():
+    return '<h1>Deployed!</h1><style>body { display: flex; align-items: center; justify-content: center; height: 100vh; }</style>'

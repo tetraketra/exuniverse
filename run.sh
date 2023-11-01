@@ -1,2 +1,3 @@
 . .venv/bin/activate
-flask --app exuniverse run --debug
+# flask --app exuniverse run --debug
+gunicorn exuniverse:app
