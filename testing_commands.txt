@@ -3,4 +3,4 @@ curl http://127.0.0.1:5000/user/login -X POST -H "Content-Type: application/json
 curl http://127.0.0.1:5000/card -X GET -H "Content-Type: application/json" -d '{"id":1}'
 curl http://127.0.0.1:5000/card -X POST -H "Content-Type: application/json" -d '{"name":"showcase", "template_type_id":0, "template_subtype_id":0, "template_attribute_id":0}'
 
-exa exuniverse -TFa -s ext -I "*__py*|*.txt"
+exa -TFa -s ext -I "*__py*|*.txt|*.venv|*.git*"

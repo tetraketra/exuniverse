@@ -5,7 +5,7 @@ from flask import Flask
 from flask_login import LoginManager
 
 from .db import link_db_to_app, get_db
-from .helpers import os_extras
+from .extras import os_extras
 
 
 app = Flask(__name__, instance_relative_config=True)

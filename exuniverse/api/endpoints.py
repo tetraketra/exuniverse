@@ -228,7 +228,7 @@ class Cards(Resource):
             *QueryFormatter.in_field("ts.template_subtype", args['template_subtype']),
             *QueryFormatter.in_field("ta.template_attribute", args['template_attribute']),
             *QueryFormatter.in_field("mt.monster_type", args['mt.monster_type']),
-            *QueryFormatter.equal_field("c.monster_is_gemini", args['monster_is_gemeni']),
+            *QueryFormatter.equal_field("c.monster_is_gemini", args['monster_is_gemini']),
             *QueryFormatter.equal_field("c.monster_is_spirit", args['monster_is_spirit']),
             *QueryFormatter.equal_field("c.monster_is_toon", args['monster_is_toon']),
             *QueryFormatter.equal_field("c.monster_is_tuner", args['monster_is_tuner']),
