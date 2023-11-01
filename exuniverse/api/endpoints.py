@@ -262,7 +262,6 @@ class CardsNames(Resource):
         sql: str = f"SELECT name FROM cards;"
 
         try:
-            print(names)
             names = query_db(conn=conn, sql=sql, method="update") 
             print(names)
             names = map(
