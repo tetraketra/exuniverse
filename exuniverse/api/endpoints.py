@@ -6,44 +6,10 @@ from collections import defaultdict
 from flask import request, Request
 from flask_restful import Resource, abort
 from marshmallow import Schema
-from urllib.parse import urlparse, ParseResult
 
-from ..db import get_db, query_db
-from ..user import User
+from ..db import get_db, query_db, QueryFormatter
+from ..login_manager import User
 from .validation_schemas import *
-
-
-def url_has_allowed_host_and_scheme(
-    url: str, allowed_hosts: str | set[str], require_https: bool = True
-) -> bool:
-    """
-    Use this to validate the `next` url property on a redirection (such as
-    after login) to protect against [open redirection](https://portswigger.net/kb/issues/00500100_open-redirection-reflected).
-    """
-
-    if url is not None:
-        url = url.strip()
-    if not url:
-        return False
-    if url.startswith('///'):
-        return False
-    if allowed_hosts is None:
-        allowed_hosts = set()
-    elif isinstance(allowed_hosts, str):
-        allowed_hosts = {allowed_hosts}
-
-    try:
-        url_info: ParseResult = urlparse(url)
-        if not url_info.netloc and url_info.scheme:
-            return False
-        if not url_info.scheme in (['https'] if require_https else ['http', 'https']):
-            return False
-        if not url_info.hostname in allowed_hosts:
-            return False
-    except:
-        return False
-
-    return True
 
 
 def api_call_setup(
@@ -226,11 +192,10 @@ class Card(Resource):
 
 
 class Cards(Resource):
-    def get(self): # TODO FIXME: TESTING
+    def get(self):
         args, conn = api_call_setup(request=request, schema=GetCards_InputSchema)
 
-        _pmad = GetCards_InputSchema.parse_monster_atkdef
-
+        # NOTE: defaults don't exist, even though they're specified in GetCards_InputSchema? 
         if not args['name_method']: args['name_method'] = "like"
         if not args['treated_as_method']: args['treated_as_method'] = "like"
         if not args['effect_method']: args['effect_method'] = "like"
@@ -254,41 +219,36 @@ class Cards(Resource):
                 LEFT JOIN template_attributes ta ON c.template_attribute_id = ta.id
                 LEFT JOIN monster_types mt ON c.monster_type_id = mt.id
                 LEFT JOIN users u ON c.created_by_user_id = u.id"""
-        where: str = [
-            f"c.name like '%{args['name']}%'" * (bool(args['name']) and (args['name_method'] == "like")),
-            f"c.name = '{args['name']}'"      * (bool(args['name']) and (args['name_method'] == "exact")),
-            f"c.treated_as like '%{args['treated_as']}%'" * (bool(args['treated_as']) and (args['treated_as_method'] == "like")),
-            f"c.treated_as = '{args['treated_as']}'"      * (bool(args['treated_as']) and (args['treated_as_method'] == "exact")),
-            f"c.effect like '%{args['effect']}%'" * (bool(args['effect']) and (args['effect_method'] == "like")),
-            f"c.effect = '{args['effect']}'"      * (bool(args['effect']) and (args['effect_method'] == "exact")),
-            f"tt.template_type in {*(args['template_type'] or ''),}" * bool(args['template_type']),
-            f"ts.template_subtype in {*(args['template_subtype'] or ''),}" * bool(args['template_subtype']),
-            f"ta.template_attribute in {*(args['template_attribute'] or ''),}" * bool(args['template_attribute']),
-            f"{_pmad('c.monster_atk', args['monster_atk'])}" * bool(args['monster_atk']),
-            f"{_pmad('c.monster_def', args['monster_def'])}" * bool(args['monster_def']),
-            f"mt.monster_type in {*(args['monster_type'] or ''),}" * bool(args['monster_type']),
-            f"c.monster_is_gemini = {args['monster_is_gemeni']}" * bool(args['monster_is_gemeni']),
-            f"c.monster_is_spirit = {args['monster_is_spirit']}" * bool(args['monster_is_spirit']),
-            f"c.monster_is_toon = {args['monster_is_toon']}" * bool(args['monster_is_toon']),
-            f"c.monster_is_tuner = {args['monster_is_tuner']}" * bool(args['monster_is_tuner']),
-            f"c.monster_is_union = {args['monster_is_union']}" * bool(args['monster_is_union']),
-            f"c.monster_is_flip = {args['monster_is_flip']}" * bool(args['monster_is_flip']),
-            f"c.pendulum_scale = {args['pendulum_scale']}" * bool(args['pendulum_scale']),
-            f"c.pendulum_effect like '%{args['pendulum_effect']}%'" * (bool(args['pendulum_effect']) and (args['pendulum_effect_method'] == "like")),
-            f"c.pendulum_effect = '{args['pendulum_effect']}'"      * (bool(args['pendulum_effect']) and (args['pendulum_effect_method'] == "exact")),
-            f"c.link_arrows = '{args['link_arrows']}'" * bool(args['link_arrows']),
-            f"c.ocg = {args['ocg']}" * bool(args['ocg']),
-            f"c.ocg_limit = {args['ocg_limit']}" * bool(args['ocg_limit']),
-            f"c.tcg = {args['tcg']}" * bool(args['tcg']),
-            f"c.tcg_limit = {args['tcg_limit']}" * bool(args['tcg_limit']),
-            f"c.exu_limit = {args['exu_limit']}" * bool(args['exu_limit']),
-            f"u.username = '{args['username']}'" * bool(args['username'])
+        where: list[str] = [
+            *QueryFormatter.method_field("c.name", args['name'], args['name_method']),
+            *QueryFormatter.method_field("c.treated_as", args['treated_as'], args['treated_as_method']),
+            *QueryFormatter.method_field("c.effect", args['effect'], args['effect_method']),
+            *QueryFormatter.method_field("c.pendulum_effect", args['pendulum_effect'], args['pendulum_effect_method']),
+            *QueryFormatter.in_field("tt.template_type", args['template_type']),
+            *QueryFormatter.in_field("ts.template_subtype", args['template_subtype']),
+            *QueryFormatter.in_field("ta.template_attribute", args['template_attribute']),
+            *QueryFormatter.in_field("mt.monster_type", args['mt.monster_type']),
+            *QueryFormatter.equal_field("c.monster_is_gemini", args['monster_is_gemeni']),
+            *QueryFormatter.equal_field("c.monster_is_spirit", args['monster_is_spirit']),
+            *QueryFormatter.equal_field("c.monster_is_toon", args['monster_is_toon']),
+            *QueryFormatter.equal_field("c.monster_is_tuner", args['monster_is_tuner']),
+            *QueryFormatter.equal_field("c.monster_is_union", args['monster_is_union']),
+            *QueryFormatter.equal_field("c.monster_is_flip", args['monster_is_flip']),
+            *QueryFormatter.equal_field("c.pendulum_scale", args['pendulum_scale']),
+            *QueryFormatter.equal_field("c.link_arrows", args['link_arrows']),
+            *QueryFormatter.equal_field("c.ocg", args['ocg']),
+            *QueryFormatter.equal_field("c.ocg_limit", args['ocg_limit']),
+            *QueryFormatter.equal_field("c.tcg", args['tcg']),
+            *QueryFormatter.equal_field("c.tcg_limit", args['tcg_limit']),
+            *QueryFormatter.equal_field("c.exu_limit", args['exu_limit']),
+            *QueryFormatter.equal_field("u.username", args['username']),
+            *QueryFormatter.m_atk_def_field("c.monster_atk", args['monster_atk']),
+            *QueryFormatter.m_atk_def_field("c.monster_def", args['monster_def'])
         ]
         where = " AND ".join(filter(None, where))
-        sql: str = f"SELECT {select} WHERE {where};"
+        sql: str = f"SELECT {select}" + (f"WHERE {where};" if where else ';')
 
         try:
-            print(sql)
             cards = query_db(conn=conn, sql=sql, method="select")
             return cards # SUCCESS
 

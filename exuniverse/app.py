@@ -1,9 +1,11 @@
 import os
 
+import sqlite3
 from flask import Flask
+from flask_login import LoginManager
 
-from . import db
-from . import os_addons
+from .db import link_db_to_app, get_db
+from .helpers import os_extras
 
 
 app = Flask(__name__, instance_relative_config=True)
@@ -12,6 +14,5 @@ app.config.from_mapping( # TODO: config files, actually secret secrets
     DATABASE=os.path.join(app.instance_path, 'exuniverse.db'),
 )
 
-os_addons.ensure_dir(app.instance_path)
-
-db.link_to_app(app)
+os_extras.ensure_dir(app.instance_path)
+link_db_to_app(app)

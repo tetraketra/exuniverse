@@ -1,6 +1,5 @@
 import sqlite3
-from typing import Literal
-from typing import NewType
+from typing import Literal, NewType
 
 import click
 from flask import current_app, g, Flask
@@ -82,17 +81,16 @@ def close_db(e=None): # not sure if `e` is required, but it's there in the docs 
     Close the database connection at the end of a request.
     """
     
-    db = g.pop('db', None)
+    db: sqlite3.Connection = g.pop('db', None)
 
     if db is not None:
         db.close()
 
 
-def link_to_app(app: Flask):
+def link_db_to_app(app: Flask):
     """
     Registers `db.py` functions to `app` from `__init__.py`.
     """
     
     app.teardown_appcontext(close_db) # call `close_db()` when app context (request) ends
     app.cli.add_command(init_db_command) # register `init_db_command()`'s `init-db` flask cli command
-

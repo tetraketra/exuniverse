@@ -34,9 +34,9 @@ CREATE TABLE template_types (
 );
 INSERT INTO template_types(template_type)
 VALUES
-    ('Monster'),
-    ('Spell'),
-    ('Trap');
+    ('monster'),
+    ('spell'),
+    ('trap');
 
 CREATE TABLE template_subtypes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,24 +46,24 @@ CREATE TABLE template_subtypes (
 );
 INSERT INTO template_subtypes(template_type_id, template_subtype)
 VALUES
-    (1, 'Normal'),
-    (1, 'Effect'),
-    (1, 'Ritual'),
-    (1, 'Fusion'),
-    (1, 'Synchro'),
-    (1, 'Xyz'),
-    (1, 'Pendulum'),
-    (1, 'Link'),
-    (1, 'Token'),
-    (2, 'Normal'),
-    (2, 'Continuous'),
-    (2, 'Field'),
-    (2, 'Equip'),
-    (2, 'Quick-Spell'),
-    (2, 'Ritual'),
-    (3, 'Normal'),
-    (3, 'Continuous'),
-    (3, 'Counter');
+    (1, 'normal'),
+    (1, 'effect'),
+    (1, 'ritual'),
+    (1, 'fusion'),
+    (1, 'synchro'),
+    (1, 'xyz'),
+    (1, 'pendulum'),
+    (1, 'link'),
+    (1, 'token'),
+    (2, 'normal'),
+    (2, 'continuous'),
+    (2, 'field'),
+    (2, 'equip'),
+    (2, 'quick-spell'),
+    (2, 'ritual'),
+    (3, 'normal'),
+    (3, 'continuous'),
+    (3, 'counter');
 
 CREATE TABLE template_attributes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,12 +71,12 @@ CREATE TABLE template_attributes (
 );
 INSERT INTO template_attributes(template_attribute)
 VALUES
-    ('DARK'),
-    ('LIGHT'),
-    ('EARTH'),
-    ('FIRE'),
-    ('WIND'),
-    ('WATER');
+    ('dark'),
+    ('light'),
+    ('earth'),
+    ('fire'),
+    ('wind'),
+    ('water');
 
 CREATE TABLE monster_types (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,33 +84,33 @@ CREATE TABLE monster_types (
 );
 INSERT INTO monster_types(monster_type)
 VALUES
-    ('Aqua'),
-    ('Beast'),
-    ('Beast-Warrior'),
-    ('Creator God'),
-    ('Cyberse'),
-    ('Dinosaur'),
-    ('Divine-Beast'),
-    ('Dragon'),
-    ('Fairy'),
-    ('Fiend'),
-    ('Fish'),
-    ('Insect'),
-    ('Illusion'),
-    ('Machine'),
-    ('Machine'),
-    ('Plant'),
-    ('Psychic'),
-    ('Pyro'),
-    ('Reptile'),
-    ('Rock'),
-    ('Sea Serpent'),
-    ('Spellcaster'),
-    ('Thunder'),
-    ('Warrior'),
-    ('Winged Beast'),
-    ('Wyrm'),
-    ('Zombie');
+    ('aqua'),
+    ('beast'),
+    ('beast-warrior'),
+    ('creator god'),
+    ('cyberse'),
+    ('dinosaur'),
+    ('divine-beast'),
+    ('dragon'),
+    ('fairy'),
+    ('fiend'),
+    ('fish'),
+    ('insect'),
+    ('illusion'),
+    ('machine'),
+    ('machine'),
+    ('plant'),
+    ('psychic'),
+    ('pyro'),
+    ('reptile'),
+    ('rock'),
+    ('sea serpent'),
+    ('spellcaster'),
+    ('thunder'),
+    ('warrior'),
+    ('winged beast'),
+    ('wyrm'),
+    ('zombie');
 
 CREATE TABLE cards (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
