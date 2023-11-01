@@ -13,7 +13,7 @@ from .validation_schemas import *
 
 
 def api_call_setup(
-    request: Request, schema: Schema, default_arg_value = None
+    request: Request, schema: Schema = None, default_arg_value = None
 ) -> tuple[dict, sqlite3.Connection]:
     """
     Run this at the beginning of each Flask-RESTful GET/PUT/POST method to
