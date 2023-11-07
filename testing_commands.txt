@@ -2,5 +2,6 @@ curl http://127.0.0.1:5000/user/register -H "Content-Type: application/json" -d 
 curl http://127.0.0.1:5000/user/login -X POST -H "Content-Type: application/json" -d '{"username":"konami", "password":"konami"}'
 curl http://127.0.0.1:5000/card -X GET -H "Content-Type: application/json" -d '{"id":1}'
 curl http://127.0.0.1:5000/card -X POST -H "Content-Type: application/json" -d '{"name":"showcase", "template_type_id":0, "template_subtype_id":0, "template_attribute_id":0}'
+curl https://exuniverse.net/cards/names -X GET -H "Content-Type: application/json" -d '{}'
 
 exa -TFa -s ext -I "*__py*|*.txt|*.venv|*.git*|*.md"
