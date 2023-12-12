@@ -1,8 +1,4 @@
-from .app import app
-from .db import *
-# from .api import *
-# from .login_manager import *
-
-
-if __name__ == "__main__":
-    app.run('192.168.1.177', debug=True, port = 8000)
+from .api import flask_api
+from .app import flask_app
+from .db import flask_db
+from .extras import *
