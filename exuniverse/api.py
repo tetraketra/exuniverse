@@ -15,9 +15,9 @@ from .app import flask_app
 
 
 class Post_UserRegister_InputSchema(Schema):
-    username = fields.String(required=True) # Unique username of the new user.
-    password = fields.String(required=True) # Plain password of the new user.
-    email    = fields.String(required=True) # Unique email of the new user.
+    username: str = fields.String(required=True) # Unique username of the new user.
+    password: str = fields.String(required=True) # Plain password of the new user.
+    email: str    = fields.String(required=True) # Unique email of the new user.
 
 class UserRegister(Resource):
     
