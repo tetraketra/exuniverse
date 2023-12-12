@@ -1,4 +1,6 @@
 import re
+import inspect
+from typing import NewType
 
 from flask_restful import Resource
 from marshmallow import Schema
@@ -37,21 +39,16 @@ api_documentation_sets = [{
 
 api_documentation = ""
 for docset in api_documentation_sets:
-    api_documentation += f"## {EXUNIVERSE_URL + docset['endpoint']}\n"
 
-    if docset['get_schema']:
-        api_documentation += f"### GET: {docset['get_schema'].__name__}\n"
-    if docset['post_schema']:
-        api_documentation += f"### POST: {docset['post_schema'].__name__}\n"
-    if docset['put_schema']:
-        api_documentation += f"### PUT: {docset['put_schema'].__name__}\n"
+    schemas = [docset['get_schema'], docset['post_schema'], docset['put_schema']]
+    schemas = [schema for schema in schemas if schema is not None]
 
-print(
-    header.format(specification=api_documentation)
-)
+    for schema in schemas:
+        api_documentation += f"`GET {EXUNIVERSE_URL + docset['endpoint']}`\n"
 
-# print(schemas)
-# print(resources)
+        schema_inputs = get_schema_info(schema)
+        for si in schema_inputs:
+            api_documentation += f" - `{si['annotated_var_name']}`: {si['comment']}\n"
 
 with open("README.md", "w") as fh:
     fh.truncate()

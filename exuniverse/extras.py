@@ -1,13 +1,34 @@
 import ast
+import inspect
 import hashlib
 from collections import defaultdict
 from datetime import datetime
 from importlib.util import module_from_spec, spec_from_file_location
-from typing import Callable, Literal, Type
+from typing import Callable, Literal, Type, NewType
 
 from flask import Request
 from flask_restful import abort
 from marshmallow import Schema
+
+
+annotated_var_name = NewType('annotated_var_name', str)
+comment = NewType('comment', str)
+def get_schema_info(cls: Type) -> list[dict[annotated_var_name, comment]]:
+    source_code = inspect.getsource(cls)
+
+    output = []
+
+    for line in source_code.split('\n'):
+        line = line.strip()
+
+        if 'fields.' in line:
+            annotated_var_name, the_rest = line.split(' = ')
+            output.append({
+                "annotated_var_name":annotated_var_name.strip(), 
+                "comment":the_rest.split(" # ")[1].strip()
+            })
+
+    return output
 
 
 def get_class_names_from_file(file_path: str) -> list[str]:
