@@ -8,6 +8,7 @@ The open-source custom card card API and battling website for Extinction Unleash
 
 # API Specification
 The following endpoints accept the following inputs in the request body as JSON:
+
 `POST https://exuniverse.net/user/register`
  - `username: str`, required unique username of the new user.
  - `password: str`, required plain password of the new user.

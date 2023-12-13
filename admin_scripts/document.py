@@ -25,6 +25,7 @@ The open-source custom card card API and battling website for Extinction Unleash
 
 # API Specification
 The following endpoints accept the following inputs in the request body as JSON:
+
 {specification}
 """
 
