@@ -1,15 +1,33 @@
 import ast
-import inspect
 import hashlib
+import inspect
 from collections import defaultdict
 from datetime import datetime
-from typing import Callable, Literal, Type, NewType
+from typing import Callable, Literal, NewType, Type
 
 from flask import Request
 from flask_restful import abort
 from marshmallow import Schema
 
 import exuniverse.reference as ref
+
+
+class ModelRepr_BaseClass():
+    def __repr__(self):
+        return str(self.as_dict(True))
+
+    def as_dict(self,
+        condensed = False
+    ) -> dict:
+
+        d = {key:val for key, val in self.__dict__.items() if key[0] != '_'}
+
+        if condensed:
+            for key, val in d.items():
+                if isinstance(val, str) and len(val) > 100 and val[-5:] == '00000':
+                    d[key] = d[key].strip('0')
+
+        return d
 
 
 annotated_var_name = NewType('annotated_var_name', str)
@@ -29,7 +47,7 @@ def get_schema_info(
         if 'fields.' in line:
             annotated_var_name, the_rest = line.split(' = ')
             output.append({
-                "annotated_var_name":annotated_var_name.strip(), 
+                "annotated_var_name":annotated_var_name.strip(),
                 "comment":the_rest.split(" # ")[1].strip(),
                 "required":True if "True" in the_rest.split(" # ")[0] else False
             })
@@ -54,12 +72,12 @@ def get_class_names_from_file(
 
 
 class DBConverter:
-    
+
     @classmethod
-    def get_order(cls, 
+    def get_order(cls,
         converter: Literal['attribute', 'ability', 'monster_type']
     ) -> list[str]:
-        
+
         match converter:
             case 'attribute':
                 return ref.ATTRIBUTES
@@ -70,22 +88,22 @@ class DBConverter:
 
 
     @classmethod
-    def str_to_list(cls, 
-        converter: Literal['attribute', 'ability', 'monster_type'], 
+    def str_to_list(cls,
+        converter: Literal['attribute', 'ability', 'monster_type'],
         value: str
     ) -> list[str]:
-        
+
         order = cls.get_order(converter)
 
         if len(order) != len(value):
             raise ValueError(f"Expected {len(order)} bits, got {len(value)}!")
-        
+
         return [atr for atr, digit in zip(order, value) if digit == '1']
 
 
     @classmethod
-    def list_to_str(cls, 
-        converter: Literal['attribute', 'ability', 'monster_type'], 
+    def list_to_str(cls,
+        converter: Literal['attribute', 'ability', 'monster_type'],
         value: list[str]
     ) -> str:
 
@@ -93,34 +111,34 @@ class DBConverter:
 
         if len(order) != len(value):
             raise ValueError(f"Expected {len(order)} bits, got {len(value)}!")
-        
+
         return ''.join([('1' if atr in value else '0') for atr in order])
 
 
 def abort_with_info(
     args: defaultdict, er: Exception, source: Callable
 ) -> None:
-    
+
     error_info = {
         "source":   source.__qualname__,
         "error":    (type(er), str(er)),
         "args":     args,
         "datetime": datetime.now(),
     }
-    
+
     message = f"""
         Unhandled exception {error_info['error']} occurred in {error_info['source']}.
         Please contact an administrator and provide the following information:
         {error_info}
     """.replace("\n", " ").replace('\t', '')
-                
+
     abort(400, message=message)
 
 
 def get_hashed_password(
     password: str, password_salt: str
 ) -> str:
-    
+
     return hashlib.sha256(
         (password + password_salt + "MHWVA7EFC79CVORN8G93VAZC6NT1BA").encode('utf-8')
     ).hexdigest()
@@ -130,10 +148,10 @@ def api_call_setup(
     request: Request, schema: Schema = None, default_arg_value = None
 ) -> defaultdict:
     """
-    Run this at the beginning of each Flask-RESTful GET/PUT/POST 
+    Run this at the beginning of each Flask-RESTful GET/PUT/POST
     method to fetch the JSON input arguments.
     """
-    
+
     args = defaultdict(lambda: default_arg_value, request.get_json(force=True))
     if schema:
         if er := schema().validate(request.json):

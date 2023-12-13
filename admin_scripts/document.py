@@ -1,14 +1,14 @@
-import re
 import inspect
+import re
 from typing import NewType
 
 from flask_restful import Resource
 from marshmallow import Schema
 
+from exuniverse.api import *
 from exuniverse.app import *
 from exuniverse.db import *
 from exuniverse.extras import *
-from exuniverse.api import *
 
 with open("README.md", "w") as fh:
     fh.truncate()

@@ -22,9 +22,11 @@ packaging==23.2
 passlib==1.7.4
 pycparser==2.21
 pyOpenSSL==23.3.0
+python-dotenv==1.0.0
 pytz==2023.3.post1
 six==1.16.0
 SQLAlchemy==2.0.23
+tqdm==4.66.1
 typing-inspect==0.9.0
 typing_extensions==4.8.0
 Werkzeug==3.0.1
