@@ -75,9 +75,9 @@ if DO_TESTING_CARDS:
             end_date = datetime(2020, 1, 1)
 
             new_card = Card(
-                name=f"Testing Card {card_num}",
+                name=''.join(r.choice(string.ascii_letters + string.digits) for _ in range(10)) + "."*r.choice([0,1]) + ''.join(r.choice(string.ascii_letters + string.digits) for _ in range(10)),
                 treated_as=r.choice([f"Testing Card {card_num+20}", None]),
-                effect=''.join(r.choice(string.ascii_letters + string.digits) for _ in range(5)),
+                effect=''.join(r.choice(string.ascii_letters + string.digits) for _ in range(10)) + "."*r.choice([0,1]) + ''.join(r.choice(string.ascii_letters + string.digits) for _ in range(10)),
                 ttype_id=a.ttype_id,
                 tsubtype_id=a.id,
                 attributes=''.join(mit.padded([str(r.choice([0, 1])) for _ in range(10)], '0', MAX_AT_AB_MT_LENGTH)),
@@ -87,7 +87,7 @@ if DO_TESTING_CARDS:
                 mon_abilities=''.join(mit.padded([str(r.choice([0, 1])) for _ in range(10)], '0', MAX_AT_AB_MT_LENGTH)),
                 mon_types=''.join(mit.padded([str(r.choice([0, 1])) for _ in range(10)], '0', MAX_AT_AB_MT_LENGTH)),
                 pen_scale=r.randint(0, 10),
-                pen_effect=''.join(r.choice(string.ascii_letters + string.digits) for _ in range(5)),
+                pen_effect=''.join(r.choice(string.ascii_letters + string.digits) for _ in range(10)) + "."*r.choice([0,1]) + ''.join(r.choice(string.ascii_letters + string.digits) for _ in range(10)),
                 link_arrows=''.join(str(r.choice([0, 1])) for _ in range(8)),
                 date_deleted=datetime.now(dt.UTC),
                 pen=r.choice([0, 1])
