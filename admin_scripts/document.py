@@ -24,6 +24,7 @@ The open-source custom card card API and battling website for Extinction Unleash
 1. [API Specification](#api-specification)
 
 # API Specification
+The following endpoints accept the following inputs in the request body as JSON:
 {specification}
 """
 
@@ -53,7 +54,7 @@ for docset in api_documentation_sets:
 
         schema_inputs = get_schema_info(schema)
         for si in schema_inputs:
-            api_documentation += f" - `{si['annotated_var_name']}`, {si['comment'][0].lower() + si['comment'][1:]}\n"
+            api_documentation += f" - `{si['annotated_var_name']}`,{f" required" * si['required']} {si['comment'][0].lower() + si['comment'][1:]}\n"
 
         api_documentation += "\n"
 

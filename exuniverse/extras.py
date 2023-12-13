@@ -13,7 +13,8 @@ from marshmallow import Schema
 
 annotated_var_name = NewType('annotated_var_name', str)
 comment = NewType('comment', str)
-def get_schema_info(cls: Type) -> list[dict[annotated_var_name, comment]]:
+required = NewType('required', bool)
+def get_schema_info(cls: Type) -> list[dict[annotated_var_name, comment, required]]:
     source_code = inspect.getsource(cls)
 
     output = []
@@ -25,7 +26,8 @@ def get_schema_info(cls: Type) -> list[dict[annotated_var_name, comment]]:
             annotated_var_name, the_rest = line.split(' = ')
             output.append({
                 "annotated_var_name":annotated_var_name.strip(), 
-                "comment":the_rest.split(" # ")[1].strip()
+                "comment":the_rest.split(" # ")[1].strip(),
+                "required":True if "True" in the_rest.split(" # ")[0] else False
             })
 
     return output
