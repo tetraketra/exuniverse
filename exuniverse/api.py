@@ -94,8 +94,7 @@ class Get_Cards_InputSchema(Schema):
     pen_scale: list[int] = fields.List(fields.Integer, required=False) # List of pendulum scales to get.
     pen_effect_contains: list[str] = fields.List(fields.String, required=False) # List of strings to search pendulum effects for. Defaults to "or" searching unless `pen_effect_contains_all` is set to `True`.
     pen_effect_contains_all: bool = fields.Boolean(required=False, default=False) # Toggles card pendulum effect search mode to "all" filtering (e.g. input ['foo', 'bar'] will match "foo bar" but not "foo"). Defaults to "or" (e.g. input ['foo', 'bar'] will match "foo bar", "foo", or "bar").
-    # LINK ARROWS CONTAINS ???
-    # LINK ARROWS CONTAINS ALL ???
+    link_arrow_indices: list[int] = fields.List(fields.Integer, required=False) # List of link arrow indices to get (e.g. [0, 4] for up-left or down-right). You should use this in combination with `mon_level` to be more specific.
     ocg: bool = fields.Boolean(required=False) # Include only cards in or out of the ocg.
     tcg: bool = fields.Boolean(required=False) # Include only cards in or out of the tcg.
     created_by_user_id: list[int] = fields.List(fields.Integer, required=False) # List of user ids to get cards created by.
@@ -110,7 +109,6 @@ class Cards(Resource):
         ...
 
     def put(self):
-        # PUT NEEDS A SPECIAL ARGUMENT FOR CHANGING THE TREATED_AS FIELD AS WELL BY DEFAULT?
         ...
 
 

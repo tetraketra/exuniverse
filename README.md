@@ -35,6 +35,7 @@ The following endpoints accept the following inputs in the request body as JSON:
  - `pen_scale: list[int]`, list of pendulum scales to get.
  - `pen_effect_contains: list[str]`, list of strings to search pendulum effects for. Defaults to "or" searching unless `pen_effect_contains_all` is set to `True`.
  - `pen_effect_contains_all: bool`, toggles card pendulum effect search mode to "all" filtering (e.g. input ['foo', 'bar'] will match "foo bar" but not "foo"). Defaults to "or" (e.g. input ['foo', 'bar'] will match "foo bar", "foo", or "bar").
+ - `link_arrow_indices: list[int]`, list of link arrow indices to get (e.g. [0, 4] for up-left or down-right). You should use this in combination with `mon_level` to be more specific.
  - `ocg: bool`, include only cards in or out of the ocg.
  - `tcg: bool`, include only cards in or out of the tcg.
  - `created_by_user_id: list[int]`, list of user ids to get cards created by.
