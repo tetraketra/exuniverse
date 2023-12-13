@@ -20,7 +20,6 @@ class Post_UserRegister_InputSchema(Schema):
     email: str    = fields.String(required=True) # Unique email of the new user.
 
 class UserRegister(Resource):
-    
     def post(self):
         args = api_call_setup(request=request, schema=Post_UserRegister_InputSchema)
         salt: str = binascii.b2a_hex(os.urandom(5)).decode('utf-8')
@@ -102,7 +101,6 @@ class Get_Cards_InputSchema(Schema):
     
 
 class Cards(Resource):
-    
     def get(self):
         ...
 

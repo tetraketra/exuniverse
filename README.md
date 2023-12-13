@@ -7,7 +7,7 @@ The open-source custom card card API and battling website for Extinction Unleash
 1. [API Specification](#api-specification)
 
 # API Specification
-`GET https://exuniverse.net/user/register`
+`POST https://exuniverse.net/user/register`
  - `username: str`, unique username of the new user.
  - `password: str`, plain password of the new user.
  - `email: str`, unique email of the new user.

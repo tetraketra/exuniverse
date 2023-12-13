@@ -10,6 +10,9 @@ from exuniverse.db import *
 from exuniverse.extras import *
 from exuniverse.api import *
 
+with open("README.md", "w") as fh:
+    fh.truncate()
+
 EXUNIVERSE_URL = "https://exuniverse.net"
 
 header = """
@@ -41,10 +44,12 @@ api_documentation = ""
 for docset in api_documentation_sets:
 
     schemas = [docset['get_schema'], docset['post_schema'], docset['put_schema']]
-    schemas = [schema for schema in schemas if schema is not None]
+    routes = ['GET', 'POST', 'PUT']
 
-    for schema in schemas:
-        api_documentation += f"`GET {EXUNIVERSE_URL + docset['endpoint']}`\n"
+    _tmp = [both for both in zip(schemas, routes) if both[0] is not None]
+    for schema, route in _tmp:
+
+        api_documentation += f"`{route} {EXUNIVERSE_URL + docset['endpoint']}`\n"
 
         schema_inputs = get_schema_info(schema)
         for si in schema_inputs:
@@ -53,7 +58,6 @@ for docset in api_documentation_sets:
 header = header.format(specification=api_documentation)
 
 with open("README.md", "w") as fh:
-    fh.truncate()
     fh.write(header)
 
 print(header)
