@@ -74,29 +74,43 @@ class UserRegister(Resource):
 
 class Get_Cards_InputSchema(Schema):
     id: list[int] = fields.List(fields.Integer, required=False) # List of card ids to get. If included, other filters will be ignored.
-    name: list[str] = fields.List(fields.String, required=False) # List of card names to get. If included, other filters will be ignored.
+    name: list[str] = fields.List(fields.String, required=False) # List of card names to get.
+    name_contains: list[str] = fields.List(fields.String, required=False) # List of strings to search card names for. Defaults to "or" searching unless `name_contains_all` is set to `True`.
+    name_contains_all: bool = fields.Boolean(required=False, default=False) # Toggles card name search mode to "sequence" filtering (e.g. input ['foo', 'bar', 'bash'] will match "foo ... bar ... bash" but not "foo. bar bash", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
+    name_contains_sequence: bool = fields.Boolean(required=False, default=False) # Toggles card name search mode to "sequence" filtering (e.g. input ['foo', 'bar', 'bash'] will match "foo ... bar ... bash" but not "foo. bar bash", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
+    name_contains_not: bool = fields.Boolean(required=False, default=False) # Toggles card name searching to exclude any/all in `name_contains` (depending on `name_contains_all`).
     treated_as: list[str] = fields.List(fields.String, required=False) # List of card treated-as names to get.
     effect_contains: list[str] = fields.List(fields.String, required=False) # List of strings to search card effects for. Defaults to "or" searching unless `effect_contains_all` is set to `True`.
-    effect_contains_all: bool = fields.Boolean(required=False, default=False) # Toggles card effect search mode to "all" filtering (e.g. input ['foo', 'bar'] will match "foo bar" but not "foo"). Defaults to "or" (e.g. input ['foo', 'bar'] will match "foo bar", "foo", or "bar").
+    effect_contains_all: bool = fields.Boolean(required=False, default=False) # Toggles card effect search mode to "all" filtering (e.g. input ['foo', 'bar'] will match "foo bar" but not "foo"). Defaults to "or" filtering (e.g. input ['foo', 'bar'] will match "foo bar", "foo", or "bar").
+    effect_contains_sequence: bool = fields.Boolean(required=False, default=False) # Toggles card effect search mode to "sequence" filtering (e.g. input ['foo', 'bar', 'bash'] will match "foo ... bar ... bash" but not "foo. bar bash", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
+    effect_contains_not: bool = fields.Boolean(required=False, default=False) # Toggles card effect searching to exclude any/all in `effect_contains` (depending on `effect_contains_all`).
     ttype: list[str] = fields.List(fields.String, required=False) # List of template types to get (e.g. ['monster', 'spell']).
     tsubtype: list[str] = fields.List(fields.String, required=False) # List of template subtypes to get (e.g. ['fusion', 'continuous']).
     attribute_contains: list[str] = fields.List(fields.String, required=False) # List of attributes to get (e.g. ['dark', 'earth', 'water', 'wind']). Defaults to "or" searching unless `attribute_contains_all` is set to `True`.
-    attribute_contains_all: bool = fields.Boolean(required=False, default=False) # Toggles card attributes search mode to "all" filtering (e.g. input ['dark', 'light'] will match "dark/light" but not "dark"). Defaults to "or" (e.g. input ['dark', 'light'] will match "dark/light", "dark", or "light").
+    attribute_contains_all: bool = fields.Boolean(required=False, default=False) # Toggles card attributes search mode to "all" filtering (e.g. input ['dark', 'light'] will match "dark/light" but not "dark"). Defaults to "or" filtering (e.g. input ['dark', 'light'] will match "dark/light", "dark", or "light").
+    attribute_contains_not: bool = fields.Boolean(required=False, default=False) # Toggles card attributes searching to exclude any/all in `attribute_contains` (depending on `attribute_contains_all`).
     mon_atk: list[int] = fields.List(fields.Integer, required=False) # List of monster attacks to get.
-    mon_atk_max: int = fields.Integer(required=False) # Maximum monster attack to get.
-    mon_atk_min: int = fields.Integer(required=False) # Minimum monster attack to get.
+    mon_atk_max: int = fields.Integer(required=False) # Maximum monster attack to get. Inclusive.
+    mon_atk_min: int = fields.Integer(required=False) # Minimum monster attack to get. Inclusive.
+    mon_atk_include_variadic: bool = fields.Boolean(required=False) # Specifies monster defense searching to include/exclude variadic ("?") attack cards. 
     mon_def: list[int] = fields.List(fields.Integer, required=False) # List of monster defenses to get.
-    mon_def_max: int = fields.Integer(required=False) # Maximum monster defense to get.
-    mon_def_min: int = fields.Integer(required=False) # Minimum monster defense to get.
-    mon_level: list[int] = fields.List(fields.Integer, required=False) # List of monster levels to get.
-    mon_level_max: int = fields.Integer(required=False) # Maximum monster level to get.
-    mon_level_min: int = fields.Integer(required=False) # Minimum monster level to get.
+    mon_def_max: int = fields.Integer(required=False) # Maximum monster defense to get. Inclusive.
+    mon_def_min: int = fields.Integer(required=False) # Minimum monster defense to get. Inclusive.
+    mon_def_include_variadic: bool = fields.Boolean(required=False) # Specifies monster defense searching to include/exclude variadic ("?") defense cards. 
+    mon_level: list[int] = fields.List(fields.Integer, required=False) # List of monster levels to get (e.g. [1, 2, 10]).
+    mon_level_max: int = fields.Integer(required=False) # Maximum monster level to get. Inclusive.
+    mon_level_min: int = fields.Integer(required=False) # Minimum monster level to get. Inclusive.
+    mon_level_not: bool = fields.Boolean(required=False, default=False) # Toggles monster level searching to exclude all in `mon_level`.
     pen_scale: list[int] = fields.List(fields.Integer, required=False) # List of pendulum scales to get.
+    pen_scale_max: int = fields.Integer(required=False) # Maximum pendulum scale to get. Inclusive.
+    pen_scale_min: int = fields.Integer(required=False) # Minimum pendulum scale to get. Inclusive.
     pen_effect_contains: list[str] = fields.List(fields.String, required=False) # List of strings to search pendulum effects for. Defaults to "or" searching unless `pen_effect_contains_all` is set to `True`.
-    pen_effect_contains_all: bool = fields.Boolean(required=False, default=False) # Toggles card pendulum effect search mode to "all" filtering (e.g. input ['foo', 'bar'] will match "foo bar" but not "foo"). Defaults to "or" (e.g. input ['foo', 'bar'] will match "foo bar", "foo", or "bar").
-    link_arrow_indices: list[int] = fields.List(fields.Integer, required=False) # List of link arrow indices to get (e.g. [0, 4] for up-left or down-right). You should use this in combination with `mon_level` to be more specific.
-    ocg: bool = fields.Boolean(required=False) # Include only cards in or out of the ocg.
-    tcg: bool = fields.Boolean(required=False) # Include only cards in or out of the tcg.
+    pen_effect_contains_all: bool = fields.Boolean(required=False, default=False) # Toggles card pendulum effect search mode to "all" filtering (e.g. input ['foo', 'bar'] will match "foo bar" but not "foo"). Defaults to "or" filtering (e.g. input ['foo', 'bar'] will match "foo bar", "foo", or "bar").
+    pen_effect_contains_sequence: bool = fields.Boolean(required=False, default=False) # Toggles card pendulum effect search mode to "sequence" filtering (e.g. input ['foo', 'bar'] will match "foo ... bar" but not "foo. bar.", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
+    pen_effect_contains_not: bool = fields.Boolean(required=False, default=False) # Toggles card pendulum effect searching to exclude any/all in `pen_effect_contains` (depending on `pen_effect_contains_all`).
+    link_arrow_indices: list[int] = fields.List(fields.Integer, required=False) # List of link arrow indices to get (e.g. [0, 4] for up-left and/or down-right). You should use this in combination with `mon_level` to be more specific.
+    format: list[str] = fields.List(fields.String, required=False) # List of card formats the gotten card may be in. Defaults to "or" searching unless `format_contains_all` is set to `True`.
+    format_exact: bool = fields.Boolean(required=False, default=False) # Toggles card format search mode to "exact" filtering (e.g. input ['ocg', 'exu'] will match cards *only in* OCG and EXU). Defaults to "or" filtering (e.g. input ['ocg', 'exu'] will match cards in either OCG or EXU).
     created_by_user_id: list[int] = fields.List(fields.Integer, required=False) # List of user ids to get cards created by.
     created_by_user_name: list[str] = fields.List(fields.String, required=False) # List of user names to get cards created by.
 

@@ -37,7 +37,7 @@ class TemplateSubtype(ModelRepr_BaseClass, flask_db.Model):
 
 class Card(ModelRepr_BaseClass, flask_db.Model):
     id              = flask_db.Column(flask_db.Integer, primary_key=True, autoincrement=True)
-    name            = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH), nullable=False, unique=True)
+    name            = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH), nullable=False)
     treated_as      = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH), nullable=True)
     effect          = flask_db.Column(flask_db.Text, nullable=True)
     pic_link        = flask_db.Column(flask_db.Text, nullable=True)
@@ -151,7 +151,7 @@ class CardVersionHistory(ModelRepr_BaseClass, flask_db.Model):
     card_id         = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('card.id'), nullable=False)
     version_created = flask_db.Column(flask_db.DateTime(timezone=False), server_default=func.now()) # utcnow
 
-    name            = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH), nullable=False, unique=True)
+    name            = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH), nullable=False)
     treated_as      = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH), nullable=True)
     effect          = flask_db.Column(flask_db.Text, nullable=True)
     pic_link        = flask_db.Column(flask_db.Text, nullable=True)
