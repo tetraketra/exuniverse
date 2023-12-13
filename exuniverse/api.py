@@ -121,8 +121,10 @@ class Get_Cards_InputSchema(Schema):
     pen_effect_contains: list[str] = fields.List(fields.String, required=False) # List of strings to search pendulum effects for. Defaults to "or" searching unless `pen_effect_contains_all` is set to `True`.
     pen_effect_contains_all: bool = fields.Boolean(required=False, default=False) # Toggles card pendulum effect search mode to "all" filtering (e.g. input ['foo', 'bar'] will match "foo bar" but not "foo"). Defaults to "or" filtering (e.g. input ['foo', 'bar'] will match "foo bar", "foo", or "bar").
     pen_effect_contains_sequence: bool = fields.Boolean(required=False, default=False) # Toggles card pendulum effect search mode to "sequence" filtering (e.g. input ['foo', 'bar'] will match "foo ... bar" but not "foo. bar.", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
-    pen_effect_contains_not: bool = fields.Boolean(required=False, default=False) # Toggles card pendulum effect searching to exclude any/all in `pen_effect_contains` (depending on `pen_effect_contains_all`).
-
+    not_pen_effect_contains: list[str] = fields.List(fields.String, required=False) # Same deal, but exclusion.
+    not_pen_effect_contains_all: bool = fields.Boolean(required=False, default=False) # Same deal, but exclusion.
+    not_pen_effect_contains_sequence: bool = fields.Boolean(required=False, default=False) # Same deal, but exclusion.
+    
     link_arrow_indices: list[int] = fields.List(fields.Integer, required=False) # List of link arrow indices to get (e.g. [0, 4] for up-left and/or down-right). You should use this in combination with `mon_level` to be more specific.
 
     format: list[str] = fields.List(fields.String, required=False) # List of card formats the gotten card may be in. Defaults to "or" searching unless `format_contains_all` is set to `True`.
