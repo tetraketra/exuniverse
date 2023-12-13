@@ -11,6 +11,7 @@ The open-source custom card card API and battling website for Extinction Unleash
  - `username: str`, unique username of the new user.
  - `password: str`, plain password of the new user.
  - `email: str`, unique email of the new user.
+
 `GET https://exuniverse.net/cards`
  - `id: list[int]`, list of card ids to get. If included, other filters will be ignored.
  - `name: list[str]`, list of card names to get. If included, other filters will be ignored.
@@ -37,4 +38,5 @@ The open-source custom card card API and battling website for Extinction Unleash
  - `tcg: bool`, include only cards in or out of the tcg.
  - `created_by_user_id: list[int]`, list of user ids to get cards created by.
  - `created_by_user_name: list[str]`, list of user names to get cards created by.
+
 

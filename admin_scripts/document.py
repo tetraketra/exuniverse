@@ -55,6 +55,8 @@ for docset in api_documentation_sets:
         for si in schema_inputs:
             api_documentation += f" - `{si['annotated_var_name']}`, {si['comment'][0].lower() + si['comment'][1:]}\n"
 
+        api_documentation += "\n"
+
 header = header.format(specification=api_documentation)
 
 with open("README.md", "w") as fh:
