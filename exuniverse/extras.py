@@ -3,18 +3,22 @@ import inspect
 import hashlib
 from collections import defaultdict
 from datetime import datetime
-from importlib.util import module_from_spec, spec_from_file_location
 from typing import Callable, Literal, Type, NewType
 
 from flask import Request
 from flask_restful import abort
 from marshmallow import Schema
 
+import exuniverse.reference as ref
+
 
 annotated_var_name = NewType('annotated_var_name', str)
 comment = NewType('comment', str)
 required = NewType('required', bool)
-def get_schema_info(cls: Type) -> list[dict[annotated_var_name, comment, required]]:
+def get_schema_info(
+    cls: Type
+) -> list[dict[annotated_var_name, comment, required]]:
+
     source_code = inspect.getsource(cls)
 
     output = []
@@ -33,7 +37,10 @@ def get_schema_info(cls: Type) -> list[dict[annotated_var_name, comment, require
     return output
 
 
-def get_class_names_from_file(file_path: str) -> list[str]:
+def get_class_names_from_file(
+    file_path: str
+) -> list[str]:
+
     classes = []
 
     with open(file_path, "r") as file:
@@ -47,11 +54,7 @@ def get_class_names_from_file(file_path: str) -> list[str]:
 
 
 class DBConverter:
-    attribute_order = ['dark', 'earth', 'fire', 'light', 'water', 'wind']
-    ability_order = ['flip', 'gemini', 'spirit', 'toon', 'tuner', 'union']
-    monster_type_order = ['aqua', 'beast', 'beast-warrior', 'creator god', 'cyberse', 'dinosaur', 'divine-beast', 'dragon', 'fairy', 'fiend', 'fish', 'illusion', 'insect', 'machine', 'plant', 'psychic', 'pyro', 'reptile', 'rock', 'sea serpent', 'spellcaster', 'thunder', 'warrior', 'winged beast', 'wyrm', 'zombie']
-
-
+    
     @classmethod
     def get_order(cls, 
         converter: Literal['attribute', 'ability', 'monster_type']
@@ -59,11 +62,11 @@ class DBConverter:
         
         match converter:
             case 'attribute':
-                return cls.attribute_order
+                return ref.ATTRIBUTES
             case 'ability':
-                return cls.ability_order
+                return ref.ABILITIES
             case 'monster_type':
-                return cls.monster_type_order
+                return ref.MONSTER_TYPES
 
 
     @classmethod

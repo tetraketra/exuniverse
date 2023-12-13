@@ -1,4 +1,5 @@
 from .app import flask_app
+from .reference import *
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
 from sqlalchemy import event
@@ -17,7 +18,7 @@ class User(flask_db.Model):
     username        = flask_db.Column(flask_db.String(80), unique=True, nullable=False)
     password        = flask_db.Column(flask_db.String(80), nullable=False)
     password_salt   = flask_db.Column(flask_db.String(80), nullable=False)
-    email           = flask_db.Column(flask_db.String(120), unique=True, nullable=True)
+    email           = flask_db.Column(flask_db.String(80), unique=True, nullable=True)
     is_active       = flask_db.Column(flask_db.Boolean, default=False)
     pf_name         = flask_db.Column(flask_db.String(80), nullable=True)
     pf_about        = flask_db.Column(flask_db.Text, nullable=True)
@@ -39,21 +40,22 @@ class TemplateSubtype(ModelRepr_BaseClass, flask_db.Model):
 
 class Card(flask_db.Model):
     id              = flask_db.Column(flask_db.Integer, primary_key=True, autoincrement=True)
-    name            = flask_db.Column(flask_db.String(120), nullable=False, unique=True)
-    treated_as      = flask_db.Column(flask_db.String(120), nullable=True)
+    name            = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH), nullable=False, unique=True)
+    treated_as      = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH), nullable=True)
     effect          = flask_db.Column(flask_db.Text, nullable=True)
     pic_link        = flask_db.Column(flask_db.Text, nullable=True)
 
     ttype_id        = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_type.id'), nullable=False) # eg "spell"'s id
     tsubtype_id     = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_subtype.id'), nullable=False) #eg "normal"'s id
 
-    attributes      = flask_db.Column(flask_db.String(6), nullable=True) # "000000" for nothing, order: dark earth fire light water wind
+    attributes      = flask_db.Column(flask_db.String(MAX_AT_AB_MT_LENGTH), nullable=True) # "000000" for nothing, order: dark earth fire light water wind
 
     mon_atk         = flask_db.Column(flask_db.Integer, nullable=True)
     mon_def         = flask_db.Column(flask_db.Integer, nullable=True)
     mon_level       = flask_db.Column(flask_db.Integer, nullable=True)
-    mon_abilities   = flask_db.Column(flask_db.String(6), nullable=True) # "000000" for nothing, order: flip gemini spirit toon tunter union
-    mon_types       = flask_db.Column(flask_db.String(24), nullable=True) # "000000000000000000000000" for nothing, order: aqua beast beast-warrior creator god cyberse dinosaur divine-beast dragon fairy fiend fish illusion insect machine plant psychic pyro reptile rock sea serpent spellcaster thunder warrior winged beast wyrm zombie
+    mon_abilities   = flask_db.Column(flask_db.String(MAX_AT_AB_MT_LENGTH), nullable=True) # "000000" for nothing, order: flip gemini spirit toon tunter union
+    mon_types       = flask_db.Column(flask_db.String(MAX_AT_AB_MT_LENGTH), nullable=True) # "000000000000000000000000" for nothing, order: aqua beast beast-warrior creator god cyberse dinosaur divine-beast dragon fairy fiend fish illusion insect machine plant psychic pyro reptile rock sea serpent spellcaster thunder warrior winged beast wyrm zombie
+    
 
     pen_scale       = flask_db.Column(flask_db.Integer, nullable=True)
     pen_effect      = flask_db.Column(flask_db.Text, nullable=True)

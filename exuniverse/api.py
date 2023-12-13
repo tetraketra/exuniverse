@@ -19,6 +19,7 @@ class Post_UserRegister_InputSchema(Schema):
     password: str = fields.String(required=True) # Plain password of the new user.
     email: str    = fields.String(required=True) # Unique email of the new user.
 
+
 class UserRegister(Resource):
     def post(self):
         args = api_call_setup(request=request, schema=Post_UserRegister_InputSchema)
@@ -69,6 +70,7 @@ class UserRegister(Resource):
 #     tcg_limit             = fields.Integer(required=False)
 #     exu_limit             = fields.Integer(required=False)
 #     created_by_user_id    = fields.Integer(required=False)
+
 
 class Get_Cards_InputSchema(Schema):
     id: list[int] = fields.List(fields.Integer, required=False) # List of card ids to get. If included, other filters will be ignored.

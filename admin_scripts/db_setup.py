@@ -11,6 +11,7 @@ import datetime as dt
 from exuniverse.app import flask_app
 from exuniverse.db import flask_db, User, Card, TemplateType, TemplateSubtype
 from exuniverse.extras import DBConverter 
+from exuniverse.reference import *
 
 
 DO_TESTING_CARDS = True
@@ -69,12 +70,12 @@ if DO_TESTING_CARDS:
                 effect=''.join(r.choice(string.ascii_letters + string.digits) for _ in range(5)),
                 ttype_id=a.ttype_id,
                 tsubtype_id=a.id,
-                attributes=''.join(str(r.choice([0, 1])) for _ in range(6)),
+                attributes=''.join(mit.padded([str(r.choice([0, 1])) for _ in range(10)], '0', MAX_AT_AB_MT_LENGTH)),
                 mon_atk=r.randint(0, 1000),
                 mon_def=r.randint(0, 1000),
                 mon_level=r.randint(0, 10),
-                mon_abilities=''.join(str(r.choice([0, 1])) for _ in range(6)),
-                mon_types=''.join(str(r.choice([0, 1])) for _ in range(24)),
+                mon_abilities=''.join(mit.padded([str(r.choice([0, 1])) for _ in range(10)], '0', MAX_AT_AB_MT_LENGTH)),
+                mon_types=''.join(mit.padded([str(r.choice([0, 1])) for _ in range(10)], '0', MAX_AT_AB_MT_LENGTH)),
                 pen_scale=r.randint(0, 10),
                 pen_effect=''.join(r.choice(string.ascii_letters + string.digits) for _ in range(5)),
                 link_arrows=''.join(str(r.choice([0, 1])) for _ in range(8)),
