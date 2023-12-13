@@ -139,9 +139,11 @@ class Cards(Resource):
         ...
 
     def post(self):
+        # USER:PLAIN_PASS VALIDATION OR SESSION TOKEN VALIDATION 
         ...
 
     def put(self):
+        # USER:PLAIN_PASS VALIDATION OR SESSION TOKEN VALIDATION
         ...
 
 
