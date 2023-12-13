@@ -15,21 +15,28 @@ The following endpoints accept the following inputs in the request body as JSON:
 
 `GET https://exuniverse.net/cards`
  - `id: list[int]`, list of card ids to get. If included, other filters will be ignored.
+ - `treated_as: list[str]`, list of card treated-as names to get.
  - `name: list[str]`, list of card names to get.
  - `name_contains: list[str]`, list of strings to search card names for. Defaults to "or" searching unless `name_contains_all` is set to `True`.
  - `name_contains_all: bool`, toggles card name search mode to "sequence" filtering (e.g. input ['foo', 'bar', 'bash'] will match "foo ... bar ... bash" but not "foo. bar bash", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
  - `name_contains_sequence: bool`, toggles card name search mode to "sequence" filtering (e.g. input ['foo', 'bar', 'bash'] will match "foo ... bar ... bash" but not "foo. bar bash", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
- - `name_contains_not: bool`, toggles card name searching to exclude any/all in `name_contains` (depending on `name_contains_all`).
- - `treated_as: list[str]`, list of card treated-as names to get.
+ - `not_name_contains: list[str]`, same deal, but exclusion.
+ - `not_name_contains_all: bool`, same deal, but exclusion.
+ - `not_name_contains_sequence: bool`, same deal, but exclusion.
  - `effect_contains: list[str]`, list of strings to search card effects for. Defaults to "or" searching unless `effect_contains_all` is set to `True`.
  - `effect_contains_all: bool`, toggles card effect search mode to "all" filtering (e.g. input ['foo', 'bar'] will match "foo bar" but not "foo"). Defaults to "or" filtering (e.g. input ['foo', 'bar'] will match "foo bar", "foo", or "bar").
  - `effect_contains_sequence: bool`, toggles card effect search mode to "sequence" filtering (e.g. input ['foo', 'bar', 'bash'] will match "foo ... bar ... bash" but not "foo. bar bash", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
- - `effect_contains_not: bool`, toggles card effect searching to exclude any/all in `effect_contains` (depending on `effect_contains_all`).
+ - `not_effect_contains: list[str]`, same deal, but exclusion.
+ - `not_effect_contains_all: bool`, same deal, but exclusion.
+ - `not_effect_contains_sequence: bool`, same deal, but exclusion.
  - `ttype: list[str]`, list of template types to get (e.g. ['monster', 'spell']).
  - `tsubtype: list[str]`, list of template subtypes to get (e.g. ['fusion', 'continuous']).
  - `attribute_contains: list[str]`, list of attributes to get (e.g. ['dark', 'earth', 'water', 'wind']). Defaults to "or" searching unless `attribute_contains_all` is set to `True`.
  - `attribute_contains_all: bool`, toggles card attributes search mode to "all" filtering (e.g. input ['dark', 'light'] will match "dark/light" but not "dark"). Defaults to "or" filtering (e.g. input ['dark', 'light'] will match "dark/light", "dark", or "light").
  - `attribute_contains_not: bool`, toggles card attributes searching to exclude any/all in `attribute_contains` (depending on `attribute_contains_all`).
+ - `not_attribute_contains: list[str]`, same deal, but exclusion.
+ - `not_attribute_contains_all: bool`, same deal, but exclusion.
+ - `not_attribute_contains_sequence: bool`, same deal, but exclusion.
  - `mon_atk: list[int]`, list of monster attacks to get.
  - `mon_atk_max: int`, maximum monster attack to get. Inclusive.
  - `mon_atk_min: int`, minimum monster attack to get. Inclusive.
