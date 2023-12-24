@@ -1,17 +1,21 @@
 import binascii
 import os
 import sqlite3
+import json
+import re
+import more_itertools as mit
 from collections import defaultdict
 from datetime import datetime
 
-from flask import Request, request
+from sqlalchemy import func, text
+from flask import Request, request, jsonify
 from flask_restful import Api, Resource, abort
 from marshmallow import (Schema, ValidationError, fields, validates,
                          validates_schema)
 
 from .app import flask_app
 from .db import Card, User, flask_db
-from .extras import abort_with_info, api_call_setup, get_hashed_password
+from .extras import abort_with_info, api_call_setup, get_hashed_password, parse_query_string
 
 
 class Post_UserRegister_InputSchema(Schema):
@@ -74,33 +78,16 @@ class UserRegister(Resource):
 
 class Get_Cards_InputSchema(Schema):
     id: list[int] = fields.List(fields.Integer, required=False) # List of card ids to get. If included, other filters will be ignored.
-
-    treated_as: list[str] = fields.List(fields.String, required=False) # List of card treated-as names to get.
-
-    name: list[str] = fields.List(fields.String, required=False) # List of card names to get.
-    name_contains: list[str] = fields.List(fields.String, required=False) # List of strings to search card names for. Defaults to "or" searching unless `name_contains_all` is set to `True`.
-    name_contains_all: bool = fields.Boolean(required=False, default=False) # Toggles card name search mode to "sequence" filtering (e.g. input ['foo', 'bar', 'bash'] will match "foo ... bar ... bash" but not "foo. bar bash", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
-    name_contains_sequence: bool = fields.Boolean(required=False, default=False) # Toggles card name search mode to "sequence" filtering (e.g. input ['foo', 'bar', 'bash'] will match "foo ... bar ... bash" but not "foo. bar bash", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
-    not_name_contains: list[str] = fields.List(fields.String, required=False) # Same deal, but exclusion.
-    not_name_contains_all: bool = fields.Boolean(required=False, default=False) # Same deal, but exclusion.
-    not_name_contains_sequence: bool = fields.Boolean(required=False, default=False) # Same deal, but exclusion.
-
-    effect_contains: list[str] = fields.List(fields.String, required=False) # List of strings to search card effects for. Defaults to "or" searching unless `effect_contains_all` is set to `True`.
-    effect_contains_all: bool = fields.Boolean(required=False, default=False) # Toggles card effect search mode to "all" filtering (e.g. input ['foo', 'bar'] will match "foo bar" but not "foo"). Defaults to "or" filtering (e.g. input ['foo', 'bar'] will match "foo bar", "foo", or "bar").
-    effect_contains_sequence: bool = fields.Boolean(required=False, default=False) # Toggles card effect search mode to "sequence" filtering (e.g. input ['foo', 'bar', 'bash'] will match "foo ... bar ... bash" but not "foo. bar bash", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
-    not_effect_contains: list[str] = fields.List(fields.String, required=False) # Same deal, but exclusion.
-    not_effect_contains_all: bool = fields.Boolean(required=False, default=False) # Same deal, but exclusion.
-    not_effect_contains_sequence: bool = fields.Boolean(required=False, default=False) # Same deal, but exclusion.
+    name: list[str] = fields.List(fields.String, required=False) # List of card names to get. If included, other filters will be ignored.
+    treated_as: list[str] = fields.List(fields.String, required=False) # List of card treated-as names to get. If included, other filters will be ignored.
     
+    name_contains: str = fields.String(required=False) # Query string.
+    treated_as_contains: str = fields.String(required=False) # Query string.
+    effect_contains: str = fields.String(required=False) # Query string. 
+    # attribute_contains: str = fields.String(required=False) # Query string. # TODO COMPLICATED?
+
     ttype: list[str] = fields.List(fields.String, required=False) # List of template types to get (e.g. ['monster', 'spell']).
     tsubtype: list[str] = fields.List(fields.String, required=False) # List of template subtypes to get (e.g. ['fusion', 'continuous']).
-
-    attribute_contains: list[str] = fields.List(fields.String, required=False) # List of attributes to get (e.g. ['dark', 'earth', 'water', 'wind']). Defaults to "or" searching unless `attribute_contains_all` is set to `True`.
-    attribute_contains_all: bool = fields.Boolean(required=False, default=False) # Toggles card attributes search mode to "all" filtering (e.g. input ['dark', 'light'] will match "dark/light" but not "dark"). Defaults to "or" filtering (e.g. input ['dark', 'light'] will match "dark/light", "dark", or "light").
-    attribute_contains_not: bool = fields.Boolean(required=False, default=False) # Toggles card attributes searching to exclude any/all in `attribute_contains` (depending on `attribute_contains_all`).
-    not_attribute_contains: list[str] = fields.List(fields.String, required=False) # Same deal, but exclusion.
-    not_attribute_contains_all: bool = fields.Boolean(required=False, default=False) # Same deal, but exclusion.
-    not_attribute_contains_sequence: bool = fields.Boolean(required=False, default=False) # Same deal, but exclusion.
 
     mon_atk: list[int] = fields.List(fields.Integer, required=False) # List of monster attacks to get.
     mon_atk_max: int = fields.Integer(required=False) # Maximum monster attack to get. Inclusive.
@@ -114,22 +101,24 @@ class Get_Cards_InputSchema(Schema):
     mon_level_max: int = fields.Integer(required=False) # Maximum monster level to get. Inclusive.
     mon_level_min: int = fields.Integer(required=False) # Minimum monster level to get. Inclusive.
 
-    mon_level_not: bool = fields.Boolean(required=False, default=False) # Toggles monster level searching to exclude all in `mon_level`.
+    mon_level_not: bool = fields.Boolean(required=False, missing=False) # Toggles monster level searching to exclude all in `mon_level`.
     pen_scale: list[int] = fields.List(fields.Integer, required=False) # List of pendulum scales to get.
     pen_scale_max: int = fields.Integer(required=False) # Maximum pendulum scale to get. Inclusive.
     pen_scale_min: int = fields.Integer(required=False) # Minimum pendulum scale to get. Inclusive.
 
     pen_effect_contains: list[str] = fields.List(fields.String, required=False) # List of strings to search pendulum effects for. Defaults to "or" searching unless `pen_effect_contains_all` is set to `True`.
-    pen_effect_contains_all: bool = fields.Boolean(required=False, default=False) # Toggles card pendulum effect search mode to "all" filtering (e.g. input ['foo', 'bar'] will match "foo bar" but not "foo"). Defaults to "or" filtering (e.g. input ['foo', 'bar'] will match "foo bar", "foo", or "bar").
-    pen_effect_contains_sequence: bool = fields.Boolean(required=False, default=False) # Toggles card pendulum effect search mode to "sequence" filtering (e.g. input ['foo', 'bar'] will match "foo ... bar" but not "foo. bar.", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
+    pen_effect_contains_all: bool = fields.Boolean(required=False, missing=False) # Toggles card pendulum effect search mode to "all" filtering (e.g. input ['foo', 'bar'] will match "foo bar" but not "foo"). Defaults to "or" filtering (e.g. input ['foo', 'bar'] will match "foo bar", "foo", or "bar").
+    pen_effect_contains_sequence: bool = fields.Boolean(required=False, missing=False) # Toggles card pendulum effect search mode to "sequence" filtering (e.g. input ['foo', 'bar'] will match "foo ... bar" but not "foo. bar.", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
+    pen_effect_contains_ci: bool = fields.Boolean(required=False, missing=True) # Toggles card pendulum effect search mode to "case-insensitive" filtering (e.g. input ['foo', 'bar'] will match "FOO bar" but not "foo").
     not_pen_effect_contains: list[str] = fields.List(fields.String, required=False) # Same deal, but exclusion.
-    not_pen_effect_contains_all: bool = fields.Boolean(required=False, default=False) # Same deal, but exclusion.
-    not_pen_effect_contains_sequence: bool = fields.Boolean(required=False, default=False) # Same deal, but exclusion.
+    not_pen_effect_contains_all: bool = fields.Boolean(required=False, missing=False) # Same deal, but exclusion.
+    not_pen_effect_contains_sequence: bool = fields.Boolean(required=False, missing=False) # Same deal, but exclusion.
+    not_pen_effect_contains_ci: bool = fields.Boolean(required=False, missing=True) # Same deal, but exclusion.
     
     link_arrow_indices: list[int] = fields.List(fields.Integer, required=False) # List of link arrow indices to get (e.g. [0, 4] for up-left and/or down-right). You should use this in combination with `mon_level` to be more specific.
 
     format: list[str] = fields.List(fields.String, required=False) # List of card formats the gotten card may be in. Defaults to "or" searching unless `format_contains_all` is set to `True`.
-    format_exact: bool = fields.Boolean(required=False, default=False) # Toggles card format search mode to "exact" filtering (e.g. input ['ocg', 'exu'] will match cards *only in* OCG and EXU). Defaults to "or" filtering (e.g. input ['ocg', 'exu'] will match cards in either OCG or EXU).
+    format_exact: bool = fields.Boolean(required=False, missing=False) # Toggles card format search mode to "exact" filtering (e.g. input ['ocg', 'exu'] will match cards *only in* OCG and EXU). Defaults to "or" filtering (e.g. input ['ocg', 'exu'] will match cards in either OCG or EXU).
 
     created_by_user_id: list[int] = fields.List(fields.Integer, required=False) # List of user ids to get cards created by.
     created_by_user_name: list[str] = fields.List(fields.String, required=False) # List of user names to get cards created by.
@@ -138,9 +127,24 @@ class Get_Cards_InputSchema(Schema):
 class Cards(Resource):
     def get(self):
         args = api_call_setup(request=request, schema=Get_Cards_InputSchema)
+        query = Card.query
 
         if args['id']:
-            return Card.query.filter(Card.id.in_(args['id'])).all()
+            return [c.as_nice_dict() for c in Card.query.filter(Card.id.in_(args['id'])).all()]
+        if args['name']:
+            return [c.as_nice_dict() for c in Card.query.filter(Card.name.in_(args['name'])).all()]
+        if args['treated_as']:
+            return [c.as_nice_dict() for c in Card.query.filter(Card.treated_as.in_(args['treated_as'])).all()]
+
+        if args['name_contains']:
+            query = query.filter(Card.name.op('regexp')(parse_query_string(args['name_contains'])))
+        if args['effect_contains']:
+            query = query.filter(Card.effect.op('regexp')(parse_query_string(args['effect_contains'])))
+        if args['treated_as_contains']:
+            query = query.filter(Card.treated_as.op('treated_as')(parse_query_string(args['treated_as_contains'])))
+
+
+        return [c.as_nice_dict() for c in query.all()]
 
     def post(self):
         # USER:PLAIN_PASS VALIDATION OR SESSION TOKEN VALIDATION 

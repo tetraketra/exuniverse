@@ -22,6 +22,7 @@ The open-source custom card card API and battling website for Extinction Unleash
 # Table of Contents
 0. [Table of Contents](#table-of-contents) (you are here!)
 1. [API Specification](#api-specification)
+2. [Query Strings](#query-strings)
 
 # API Specification
 The following endpoints accept the following inputs in the request body as JSON:
@@ -60,6 +61,20 @@ for docset in api_documentation_sets:
         api_documentation += "\n"
 
 header = header.format(specification=api_documentation)
+
+header += """
+
+# Query Strings
+Query strings use square brackets `[]` to indicate text match groups, using
+parentheses `()` to indicate logical condition groupings. For example,
+`[FOO BAR]` `[FOO*BAR]` `[FOO**BAR]` `i[FOO**BAR]` `[FOO**BAR] & i[FOO*BAR]`
+`[FOO*BAR] | !i[FOO**BAR]` `([FOO**BAR] & i[FOO*BAR]) | [BAR BASH]`
+
+`i` is used to indicate case-insensitive matching.
+`!` is used to indicate negation.
+`*` matches any number of characters.
+`**` matches any number of characters, excluding periods.
+"""
 
 with open("README.md", "w") as fh:
     fh.write(header)

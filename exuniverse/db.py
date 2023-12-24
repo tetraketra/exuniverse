@@ -1,10 +1,13 @@
+from datetime import datetime
+import json
+
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import event
 from sqlalchemy.sql import func
 
 from .app import flask_app
-from .extras import ModelRepr_BaseClass
+from .extras import ModelRepr_BaseClass, DBConverter
 from .reference import *
 
 flask_db = SQLAlchemy(flask_app)
@@ -25,21 +28,21 @@ class User(ModelRepr_BaseClass, flask_db.Model, UserMixin):
 
 class TemplateType(ModelRepr_BaseClass, flask_db.Model):
     id              = flask_db.Column(flask_db.Integer, primary_key=True, autoincrement=True)
-    ttype           = flask_db.Column(flask_db.String(20), nullable=False) # eg "monster", "spell", "trap"
+    ttype           = flask_db.Column(flask_db.String(20, collation='NOCASE'), nullable=False) # eg "monster", "spell", "trap"
     ttype_subtypes  = flask_db.relationship('TemplateSubtype', backref='template_type', lazy=True)
 
 
 class TemplateSubtype(ModelRepr_BaseClass, flask_db.Model):
     id              = flask_db.Column(flask_db.Integer, primary_key=True, autoincrement=True)
     ttype_id        = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_type.id'), nullable=False)
-    tsubtype        = flask_db.Column(flask_db.String(20), nullable=False) # eg "normal", "effect", "pendulum"
+    tsubtype        = flask_db.Column(flask_db.String(20, collation='NOCASE'), nullable=False) # eg "normal", "effect", "pendulum"
 
 
 class Card(ModelRepr_BaseClass, flask_db.Model):
     id              = flask_db.Column(flask_db.Integer, primary_key=True, autoincrement=True)
-    name            = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH), nullable=False)
-    treated_as      = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH), nullable=True)
-    effect          = flask_db.Column(flask_db.Text, nullable=True)
+    name            = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH, collation='NOCASE'), nullable=False)
+    treated_as      = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH, collation='NOCASE'), nullable=True)
+    effect          = flask_db.Column(flask_db.Text(collation='NOCASE'), nullable=True)
     pic_link        = flask_db.Column(flask_db.Text, nullable=True)
 
     ttype_id        = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_type.id'), nullable=False) # eg "spell"'s id
@@ -57,7 +60,7 @@ class Card(ModelRepr_BaseClass, flask_db.Model):
 
     pen             = flask_db.Column(flask_db.Boolean, nullable=True, default=0)
     pen_scale       = flask_db.Column(flask_db.Integer, nullable=True)
-    pen_effect      = flask_db.Column(flask_db.Text, nullable=True)
+    pen_effect      = flask_db.Column(flask_db.Text(collation='NOCASE'), nullable=True)
 
     link_arrows     = flask_db.Column(flask_db.String(8), nullable=True) # "00000000", read in clockwise spiral from top-left
 
@@ -71,6 +74,21 @@ class Card(ModelRepr_BaseClass, flask_db.Model):
     version_history = flask_db.relationship('CardVersionHistory', backref='card', lazy=True)
     cardpools       = flask_db.relationship('Cardpool', backref='card', lazy=True)
 
+    def as_nice_dict(self) -> str:
+        d = self.as_dict()
+        
+        d['tsubtype'] = TemplateSubtype.query.get(self.tsubtype_id).tsubtype
+        d['ttype'] = TemplateType.query.get(self.ttype_id).ttype
+        
+        d['mon_types'] = DBConverter.str_to_list("monster_type", d['mon_types'])
+        d['attributes'] = DBConverter.str_to_list("attribute", d['attributes'])
+        d['mon_abilities'] = DBConverter.str_to_list("ability", d['mon_abilities'])
+        
+        d['date_updated'] = d['date_updated'].isoformat() if d['date_updated'] else None
+        d['date_created'] = d['date_created'].isoformat() if d['date_created'] else None
+
+        return d
+        
 
 @event.listens_for(Card, 'before_insert')
 def card_set_mon_a_d_variadic(mapper, connection, target):
@@ -158,9 +176,9 @@ class CardVersionHistory(ModelRepr_BaseClass, flask_db.Model):
     date_introduced = flask_db.Column(flask_db.DateTime(timezone=False), nullable=False)
     date_obsoleted  = flask_db.Column(flask_db.DateTime(timezone=False), server_default=func.now()) # utcnow
 
-    name            = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH), nullable=False)
-    treated_as      = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH), nullable=True)
-    effect          = flask_db.Column(flask_db.Text, nullable=True)
+    name            = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH, collation='NOCASE'), nullable=False)
+    treated_as      = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH, collation='NOCASE'), nullable=True)
+    effect          = flask_db.Column(flask_db.Text(collation='NOCASE'), nullable=True)
     pic_link        = flask_db.Column(flask_db.Text, nullable=True)
 
     ttype_id        = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_type.id'), nullable=False) # eg "spell"'s id
@@ -178,10 +196,18 @@ class CardVersionHistory(ModelRepr_BaseClass, flask_db.Model):
 
     pen             = flask_db.Column(flask_db.Boolean, nullable=True, default=0)
     pen_scale       = flask_db.Column(flask_db.Integer, nullable=True)
-    pen_effect      = flask_db.Column(flask_db.Text, nullable=True)
+    pen_effect      = flask_db.Column(flask_db.Text(collation='NOCASE'), nullable=True)
 
     link_arrows     = flask_db.Column(flask_db.String(8), nullable=True) # "00000000", read in clockwise spiral from top-left
 
     serial_number   = flask_db.Column(flask_db.Integer, nullable=True)
 
     created_by_uid  = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('user.id'), nullable=True) # null means not created by a person
+
+
+with flask_app.app_context():
+    @event.listens_for(flask_db.engine, 'connect')
+    def on_connect(dbapi_conn, connection_record):
+        dbapi_conn.enable_load_extension(True)
+        dbapi_conn.load_extension('/usr/lib/sqlite3/pcre.so')
+

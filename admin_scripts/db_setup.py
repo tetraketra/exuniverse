@@ -89,7 +89,6 @@ if DO_TESTING_CARDS:
                 pen_scale=r.randint(0, 10),
                 pen_effect=''.join(r.choice(string.ascii_letters + string.digits) for _ in range(10)) + "."*r.choice([0,1]) + ''.join(r.choice(string.ascii_letters + string.digits) for _ in range(10)),
                 link_arrows=''.join(str(r.choice([0, 1])) for _ in range(8)),
-                date_deleted=datetime.now(dt.UTC),
                 pen=r.choice([0, 1])
             )
 

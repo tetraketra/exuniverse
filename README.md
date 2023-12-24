@@ -5,6 +5,7 @@ The open-source custom card card API and battling website for Extinction Unleash
 # Table of Contents
 0. [Table of Contents](#table-of-contents) (you are here!)
 1. [API Specification](#api-specification)
+2. [Query Strings](#query-strings)
 
 # API Specification
 The following endpoints accept the following inputs in the request body as JSON:
@@ -16,28 +17,14 @@ The following endpoints accept the following inputs in the request body as JSON:
 
 `GET https://exuniverse.net/cards`
  - `id: list[int]`, list of card ids to get. If included, other filters will be ignored.
- - `treated_as: list[str]`, list of card treated-as names to get.
- - `name: list[str]`, list of card names to get.
- - `name_contains: list[str]`, list of strings to search card names for. Defaults to "or" searching unless `name_contains_all` is set to `True`.
- - `name_contains_all: bool`, toggles card name search mode to "sequence" filtering (e.g. input ['foo', 'bar', 'bash'] will match "foo ... bar ... bash" but not "foo. bar bash", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
- - `name_contains_sequence: bool`, toggles card name search mode to "sequence" filtering (e.g. input ['foo', 'bar', 'bash'] will match "foo ... bar ... bash" but not "foo. bar bash", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
- - `not_name_contains: list[str]`, same deal, but exclusion.
- - `not_name_contains_all: bool`, same deal, but exclusion.
- - `not_name_contains_sequence: bool`, same deal, but exclusion.
- - `effect_contains: list[str]`, list of strings to search card effects for. Defaults to "or" searching unless `effect_contains_all` is set to `True`.
- - `effect_contains_all: bool`, toggles card effect search mode to "all" filtering (e.g. input ['foo', 'bar'] will match "foo bar" but not "foo"). Defaults to "or" filtering (e.g. input ['foo', 'bar'] will match "foo bar", "foo", or "bar").
- - `effect_contains_sequence: bool`, toggles card effect search mode to "sequence" filtering (e.g. input ['foo', 'bar', 'bash'] will match "foo ... bar ... bash" but not "foo. bar bash", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
- - `not_effect_contains: list[str]`, same deal, but exclusion.
- - `not_effect_contains_all: bool`, same deal, but exclusion.
- - `not_effect_contains_sequence: bool`, same deal, but exclusion.
+ - `name: list[str]`, list of card names to get. If included, other filters will be ignored.
+ - `treated_as: list[str]`, list of card treated-as names to get. If included, other filters will be ignored.
+ - `name_contains: str`, query string.
+ - `treated_as_contains: str`, query string.
+ - `effect_contains: str`, query string.
+ - `# attribute_contains: str`, query string.
  - `ttype: list[str]`, list of template types to get (e.g. ['monster', 'spell']).
  - `tsubtype: list[str]`, list of template subtypes to get (e.g. ['fusion', 'continuous']).
- - `attribute_contains: list[str]`, list of attributes to get (e.g. ['dark', 'earth', 'water', 'wind']). Defaults to "or" searching unless `attribute_contains_all` is set to `True`.
- - `attribute_contains_all: bool`, toggles card attributes search mode to "all" filtering (e.g. input ['dark', 'light'] will match "dark/light" but not "dark"). Defaults to "or" filtering (e.g. input ['dark', 'light'] will match "dark/light", "dark", or "light").
- - `attribute_contains_not: bool`, toggles card attributes searching to exclude any/all in `attribute_contains` (depending on `attribute_contains_all`).
- - `not_attribute_contains: list[str]`, same deal, but exclusion.
- - `not_attribute_contains_all: bool`, same deal, but exclusion.
- - `not_attribute_contains_sequence: bool`, same deal, but exclusion.
  - `mon_atk: list[int]`, list of monster attacks to get.
  - `mon_atk_max: int`, maximum monster attack to get. Inclusive.
  - `mon_atk_min: int`, minimum monster attack to get. Inclusive.
@@ -56,9 +43,11 @@ The following endpoints accept the following inputs in the request body as JSON:
  - `pen_effect_contains: list[str]`, list of strings to search pendulum effects for. Defaults to "or" searching unless `pen_effect_contains_all` is set to `True`.
  - `pen_effect_contains_all: bool`, toggles card pendulum effect search mode to "all" filtering (e.g. input ['foo', 'bar'] will match "foo bar" but not "foo"). Defaults to "or" filtering (e.g. input ['foo', 'bar'] will match "foo bar", "foo", or "bar").
  - `pen_effect_contains_sequence: bool`, toggles card pendulum effect search mode to "sequence" filtering (e.g. input ['foo', 'bar'] will match "foo ... bar" but not "foo. bar.", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
+ - `pen_effect_contains_ci: bool`, required toggles card pendulum effect search mode to "case-insensitive" filtering (e.g. input ['foo', 'bar'] will match "FOO bar" but not "foo").
  - `not_pen_effect_contains: list[str]`, same deal, but exclusion.
  - `not_pen_effect_contains_all: bool`, same deal, but exclusion.
  - `not_pen_effect_contains_sequence: bool`, same deal, but exclusion.
+ - `not_pen_effect_contains_ci: bool`, required same deal, but exclusion.
  - `link_arrow_indices: list[int]`, list of link arrow indices to get (e.g. [0, 4] for up-left and/or down-right). You should use this in combination with `mon_level` to be more specific.
  - `format: list[str]`, list of card formats the gotten card may be in. Defaults to "or" searching unless `format_contains_all` is set to `True`.
  - `format_exact: bool`, toggles card format search mode to "exact" filtering (e.g. input ['ocg', 'exu'] will match cards *only in* OCG and EXU). Defaults to "or" filtering (e.g. input ['ocg', 'exu'] will match cards in either OCG or EXU).
@@ -66,3 +55,15 @@ The following endpoints accept the following inputs in the request body as JSON:
  - `created_by_user_name: list[str]`, list of user names to get cards created by.
 
 
+
+
+# Query Strings
+Query strings use square brackets `[]` to indicate text match groups, using
+parentheses `()` to indicate logical condition groupings. For example,
+`[FOO BAR]` `[FOO*BAR]` `[FOO**BAR]` `i[FOO**BAR]` `[FOO**BAR] & i[FOO*BAR]`
+`[FOO*BAR] | !i[FOO**BAR]` `([FOO**BAR] & i[FOO*BAR]) | [BAR BASH]`
+
+`i` is used to indicate case-insensitive matching.
+`!` is used to indicate negation.
+`*` matches any number of characters.
+`**` matches any number of characters, excluding periods.

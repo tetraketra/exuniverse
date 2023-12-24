@@ -1,9 +1,12 @@
 import ast
+import re
 import hashlib
 import inspect
-from collections import defaultdict
+import itertools as it
+import more_itertools as mit
+from collections import defaultdict, deque
 from datetime import datetime
-from typing import Callable, Literal, NewType, Type
+from typing import Callable, Literal, NewType, Type, Iterator
 
 from flask import Request
 from flask_restful import abort
@@ -152,9 +155,64 @@ def api_call_setup(
     method to fetch the JSON input arguments.
     """
 
-    args = defaultdict(lambda: default_arg_value, request.get_json(force=True))
+    args = defaultdict(lambda: default_arg_value, schema().load(request.get_json(force=True)))
     if schema:
         if er := schema().validate(request.json):
             abort(400, message=f"Argument parsing failed: {er}")
 
     return args
+
+
+def consume(
+    iterator: Iterator, 
+    n: int
+) -> None:
+    """
+    Advance the iterator n-steps ahead. If n is none, consume entirely.
+    """
+    
+    deque(it.islice(iterator, n), maxlen=0)
+
+
+def parse_query_string(
+    query_string: str
+) -> str:
+    """
+    Parses a query string (see documentation) into a regex pattern.
+
+    `[FOO BAR]`
+    `[FOO*BAR]`
+    `[FOO**BAR]`
+    `i[FOO**BAR]` 
+    `[FOO**BAR] & i[FOO*BAR]`
+    `[FOO*BAR] | !i[FOO**BAR]`
+    `([FOO**BAR] & i[FOO*BAR]) | [BAR BASH]`
+    """
+
+    regex = ""
+
+    for i, char in enumerate(query_string):
+        
+        if char == '[':
+            regex += "(?i)" if 'i' in query_string[max(0, i - 2):i] else "(?-i)" # case sensitivity
+            regex += "(?!.*" if '!' in query_string[max(0, i - 2):i] else "(?=.*" # negation
+
+            mtch_len = query_string[i:].index(']')
+            mtch = query_string[(i+1):(i + mtch_len)] # match group within brackets
+
+            iterator = mit.peekable(mtch)
+            for mtch_char in iterator:
+                if mtch_char == '*':
+                    if iterator.peek(' ') == '*':
+                        regex += "[^\\.]*"
+                        consume(iterator, 1)
+
+                else:
+                    regex += re.escape(mtch_char)
+
+            regex += ")"
+
+        if char in ('|', '(', ')'):
+            regex += char
+
+    return regex
