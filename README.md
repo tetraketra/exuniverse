@@ -24,8 +24,10 @@ The following endpoints accept the following inputs in the request body as JSON:
  - `effect_contains: str`, query string to search card effects. See [Query Strings](#query-strings).
  - `pen_effect_contains: str`, query string to search card pendulum effect. See [Query Strings](#query-strings).
  - `# attribute_contains: str`, query string. See [Query Strings](#query-strings).
- - `ttype: list[str]`, list of card template types to get (e.g. ['monster', 'spell']).
- - `tsubtype: list[str]`, list of card template subtypes to get (e.g. ['fusion', 'continuous']).
+ - `t_type: list[str]`, list of card template types to get (e.g. ['Monster', 'Spell']).
+ - `t_type_id: list[int]`, list of card template type ids to get (e.g. [1, 2]).
+ - `t_subtype: list[str]`, list of card template subtypes to get (e.g. ['Fusion', 'Continuous']).
+ - `t_subtype_id: list[int]`, list of card template subtype ids to get (e.g. [7, 8]).
  - `mon_atk: list[int]`, list of monster attacks to get (e.g. [100, 200, 4000]).
  - `mon_atk_max: int`, maximum monster attack to get. Inclusive (e.g. 4000).
  - `mon_atk_min: int`, minimum monster attack to get. Inclusive (e.g. 100).
@@ -44,8 +46,8 @@ The following endpoints accept the following inputs in the request body as JSON:
  - `link_arrow_indices: list[int]`, list of link arrow indices to get (e.g. [0, 4] for up-left and/or down-right). You should use this in combination with `mon_level` to be more specific.
  - `format: list[str]`, list of card formats the gotten card may be in. Defaults to "or" searching unless `format_contains_all` is set to `True`.
  - `format_exact: bool`, toggles card format search mode to "exact" filtering (e.g. input ['ocg', 'exu'] will match cards *only in* OCG and EXU). Defaults to "or" filtering (e.g. input ['ocg', 'exu'] will match cards in either OCG or EXU).
- - `created_by_user_id: list[int]`, list of user ids to get cards created by.
- - `created_by_user_name: list[str]`, list of user names to get cards created by.
+ - `created_by_user_id: list[int]`, list of user ids to get cards created by (e.g. [1, 2, 3]).
+ - `created_by_user_name: list[str]`, list of usernames to get cards created by (e.g. ['user1', 'user2', 'user3']).
 
 
 
