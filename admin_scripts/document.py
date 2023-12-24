@@ -65,15 +65,19 @@ header = header.format(specification=api_documentation)
 header += """
 
 # Query Strings
-Query strings use square brackets `[]` to indicate text match groups, using
+Query strings use square brackets `[]` to indicate text matching groups and
 parentheses `()` to indicate logical condition groupings. For example,
 `[FOO BAR]` `[FOO*BAR]` `[FOO**BAR]` `i[FOO**BAR]` `[FOO**BAR] & i[FOO*BAR]`
 `[FOO*BAR] | !i[FOO**BAR]` `([FOO**BAR] & i[FOO*BAR]) | [BAR BASH]`
 
-`i` is used to indicate case-insensitive matching.
-`!` is used to indicate negation.
-`*` matches any number of characters.
-`**` matches any number of characters, excluding periods.
+`[` and `]` are used to indicate text matching groups.
+`(` and `)` are used to indicate logical condition groupings.
+`|` is used to indicate logical or.
+`&` is used to indicate logical and.
+`i` is used to indicate case-insensitive matching for the following match group.
+`!` is used to indicate negation for the following match group.
+`*` matches any number of characters between the left and right characters.
+`**` matches any number of characters between the left and right characters, excluding periods.
 """
 
 with open("README.md", "w") as fh:
