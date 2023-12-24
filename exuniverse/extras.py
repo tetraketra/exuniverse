@@ -6,7 +6,7 @@ import itertools as it
 import more_itertools as mit
 from collections import defaultdict, deque
 from datetime import datetime
-from typing import Callable, Literal, NewType, Type, Iterator
+from typing import Callable, Literal, NewType, Type, Iterator, cast
 
 from flask import Request
 from flask_restful import abort
@@ -76,8 +76,8 @@ def get_class_names_from_file(
 
 class DBConverter:
 
-    @classmethod
-    def get_order(cls,
+    @staticmethod
+    def get_order(
         converter: Literal['attribute', 'ability', 'monster_type']
     ) -> list[str]:
 
@@ -90,13 +90,13 @@ class DBConverter:
                 return ref.MONSTER_TYPES
 
 
-    @classmethod
-    def str_to_list(cls,
+    @staticmethod
+    def binarystr_to_list(
         converter: Literal['attribute', 'ability', 'monster_type'],
         value: str
     ) -> list[str]:
 
-        order = cls.get_order(converter)
+        order = DBConverter.get_order(converter)
 
         if len(order) != len(value):
             raise ValueError(f"Expected {len(order)} bits, got {len(value)}!")
@@ -104,18 +104,28 @@ class DBConverter:
         return [atr for atr, digit in zip(order, value) if digit == '1']
 
 
-    @classmethod
-    def list_to_str(cls,
+    @staticmethod
+    def list_to_binarystr(
         converter: Literal['attribute', 'ability', 'monster_type'],
         value: list[str]
     ) -> str:
 
-        order = cls.get_order(converter)
+        order = DBConverter.get_order(converter)
 
         if len(order) != len(value):
             raise ValueError(f"Expected {len(order)} bits, got {len(value)}!")
 
         return ''.join([('1' if atr in value else '0') for atr in order])
+
+
+    @staticmethod
+    def ttype_to_ttype_id(
+        ttype: str
+    ) -> int:
+
+        return ref.TTYPES.index(ttype) + 1
+
+    
 
 
 def abort_with_info(
@@ -155,7 +165,10 @@ def api_call_setup(
     method to fetch the JSON input arguments.
     """
 
-    args = defaultdict(lambda: default_arg_value, schema().load(request.get_json(force=True)))
+    try:
+        args = defaultdict(lambda: default_arg_value, schema().load(request.get_json(force=True)))
+    except Exception as er:
+        abort(400, message=f"Argument parsing failed: {er}")
     if schema:
         if er := schema().validate(request.json):
             abort(400, message=f"Argument parsing failed: {er}")
@@ -180,13 +193,18 @@ def parse_query_string(
     """
     Parses a query string (see documentation) into a regex pattern.
 
-    `[FOO BAR]`
-    `[FOO*BAR]`
-    `[FOO**BAR]`
-    `i[FOO**BAR]` 
-    `[FOO**BAR] & i[FOO*BAR]`
-    `[FOO*BAR] | !i[FOO**BAR]`
-    `([FOO**BAR] & i[FOO*BAR]) | [BAR BASH]`
+    Query strings use square brackets `[]` to indicate text matching groups and
+    parentheses `()` to indicate logical condition groupings. For example:
+    `[FOO BAR]` `[FOO*BAR]` `[FOO**BAR]` `i[FOO**BAR]` `[FOO**BAR] & i[FOO*BAR]`
+    `[FOO*BAR] | !i[FOO**BAR]` `([FOO**BAR] & i[FOO*BAR]) | [BAR BASH]`
+    - `[` and `]` indicate text matching groups.
+    - `(` and `)` clarify logical condition groupings.
+    - `|` indicates logical or.
+    - `&` indicates logical and.
+    - `i` indicates case-insensitive matching for the following match group.
+    - `!` indicates negation for the following match group.
+    - `*` matches any number of characters between the left and right characters.
+    - `**` matches any number of characters between the left and right characters, excluding periods.
     """
 
     regex = ""

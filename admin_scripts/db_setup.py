@@ -20,45 +20,13 @@ with flask_app.app_context() as app_context:
     flask_db.drop_all()
     flask_db.create_all()
 
-    ttypes = [
-        "Monster",
-        "Spell",
-        "Trap"
-    ]
-
-    [flask_db.session.add(TemplateType(ttype=ttype)) for ttype in tqdm(ttypes, desc="Adding template types...", total=len(ttypes))]
+    [flask_db.session.add(TemplateType(t_type=t_type)) for t_type in tqdm(TTYPES, desc="Adding template types...", total=len(TTYPES))]
     flask_db.session.commit()
 
-    tsubtypes = [
-        (1, 'Normal'),
-        (1, 'Effect'),
-        (1, 'Ritual'),
-        (1, 'Fusion'),
-        (1, 'Synchro'),
-        (1, 'Xyz'),
-        (1, 'Link'),
-        (1, 'Token'),
-        (2, 'Normal'),
-        (2, 'Continuous'),
-        (2, 'Field'),
-        (2, 'Equip'),
-        (2, 'Quick-Play'),
-        (2, 'Ritual'),
-        (3, 'Normal'),
-        (3, 'Continuous'),
-        (3, 'Counter')
-    ]
-
-    [flask_db.session.add(TemplateSubtype(ttype_id=ttype_id, tsubtype=tsubtype)) for ttype_id, tsubtype in tqdm(tsubtypes, desc="Adding template subtypes...", total=len(tsubtypes))]
+    [flask_db.session.add(TemplateSubtype(t_type_id=t_type_id, t_subtype=t_subtype)) for t_type_id, t_subtype in tqdm(TSUBTYPES, desc="Adding template subtypes...", total=len(TSUBTYPES))]
     flask_db.session.commit()
 
-    formats = [
-        "OCG",
-        "TCG",
-        "EXU"
-    ]
-
-    [flask_db.session.add(Format(name=name)) for name in tqdm(formats, desc="Adding formats...", total=len(formats))]
+    [flask_db.session.add(Format(name=name)) for name in tqdm(FORMATS, desc="Adding formats...", total=len(FORMATS))]
     flask_db.session.commit()
 
 
@@ -78,8 +46,8 @@ if DO_TESTING_CARDS:
                 name=''.join(r.choice(string.ascii_letters + string.digits) for _ in range(10)) + "."*r.choice([0,1]) + ''.join(r.choice(string.ascii_letters + string.digits) for _ in range(10)),
                 treated_as=r.choice([f"Testing Card {card_num+20}", None]),
                 effect=''.join(r.choice(string.ascii_letters + string.digits) for _ in range(10)) + "."*r.choice([0,1]) + ''.join(r.choice(string.ascii_letters + string.digits) for _ in range(10)),
-                ttype_id=a.ttype_id,
-                tsubtype_id=a.id,
+                t_type_id=a.t_type_id,
+                t_subtype_id=a.id,
                 attributes=''.join(mit.padded([str(r.choice([0, 1])) for _ in range(10)], '0', MAX_AT_AB_MT_LENGTH)),
                 mon_atk=r.randint(0, 1000),
                 mon_def=r.randint(0, 1000),

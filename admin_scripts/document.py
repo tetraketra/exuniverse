@@ -28,6 +28,7 @@ The open-source custom card card API and battling website for Extinction Unleash
 The following endpoints accept the following inputs in the request body as JSON:
 
 {specification}
+
 """
 
 with open("exuniverse/api.py", "r") as fh:
@@ -56,14 +57,15 @@ for docset in api_documentation_sets:
 
         schema_inputs = get_schema_info(schema)
         for si in schema_inputs:
-            api_documentation += f" - `{si['annotated_var_name']}`,{f" required" * si['required']} {si['comment'][0].lower() + si['comment'][1:]}\n"
+            api_documentation += f" - `{si['annotated_var_name']}`,{f" required" * si['required']} {si['comment'][0].lower() + si['comment'][1:]}"
+
+            api_documentation += f"{" See [Query Strings](#query-strings)." if 'query string' in si['comment'].lower() else ""}\n"
 
         api_documentation += "\n"
 
 header = header.format(specification=api_documentation)
 
 header += """
-
 # Query Strings
 Query strings use square brackets `[]` to indicate text matching groups and
 parentheses `()` to indicate logical condition groupings. For example:
@@ -77,7 +79,6 @@ parentheses `()` to indicate logical condition groupings. For example:
 - `!` indicates negation for the following match group.
 - `*` matches any number of characters between the left and right characters.
 - `**` matches any number of characters between the left and right characters, excluding periods.
-
 """
 
 with open("README.md", "w") as fh:

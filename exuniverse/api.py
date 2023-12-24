@@ -1,21 +1,17 @@
 import binascii
 import os
-import sqlite3
-import json
-import re
-import more_itertools as mit
-from collections import defaultdict
-from datetime import datetime
+from typing import cast
 
-from sqlalchemy import func, text
-from flask import Request, request, jsonify
+
+from flask import request
 from flask_restful import Api, Resource, abort
-from marshmallow import (Schema, ValidationError, fields, validates,
-                         validates_schema)
+from marshmallow import Schema, fields
+from sqlalchemy import func, text
 
 from .app import flask_app
-from .db import Card, User, flask_db
-from .extras import abort_with_info, api_call_setup, get_hashed_password, parse_query_string
+from .db import Card, TemplateSubtype, TemplateType, User, flask_db
+from .extras import (abort_with_info, api_call_setup, get_hashed_password,
+                     parse_query_string)
 
 
 class Post_UserRegister_InputSchema(Schema):
@@ -46,88 +42,66 @@ class UserRegister(Resource):
             abort_with_info(args=args, er=er, source=self.post)
 
 
-# class PostPut_Cards_InputSchema(Schema):
-#     id                    = fields.Integer(required=False)
-#     name                  = fields.String (required=False)
-#     treated_as            = fields.String (required=False)
-#     effect                = fields.String (required=False)
-#     pic                   = fields.String (required=False)
-#     template_type_id      = fields.Integer(required=False)
-#     template_subtype_id   = fields.Integer(required=False)
-#     template_attribute_id = fields.Integer(required=False)
-#     monster_atk           = fields.Integer(required=False)
-#     monster_def           = fields.Integer(required=False)
-#     monster_is_gemini     = fields.Integer(required=False)
-#     monster_is_spirit     = fields.Integer(required=False)
-#     monster_is_toon       = fields.Integer(required=False)
-#     monster_is_tuner      = fields.Integer(required=False)
-#     monster_is_union      = fields.Integer(required=False)
-#     monster_is_flip       = fields.Integer(required=False)
-#     pendulum_scale        = fields.Integer(required=False)
-#     pendulum_effect       = fields.String (required=False)
-#     link_arrows           = fields.String (required=False)
-#     ocg                   = fields.Integer(required=False)
-#     ocg_date              = fields.Integer(required=False)
-#     ocg_limit             = fields.Integer(required=False)
-#     tcg                   = fields.Integer(required=False)
-#     tcg_date              = fields.Integer(required=False)
-#     tcg_limit             = fields.Integer(required=False)
-#     exu_limit             = fields.Integer(required=False)
-#     created_by_user_id    = fields.Integer(required=False)
-
-
 class Get_Cards_InputSchema(Schema):
     id: list[int] = fields.List(fields.Integer, required=False) # List of card ids to get. If included, other filters will be ignored.
     name: list[str] = fields.List(fields.String, required=False) # List of card names to get. If included, other filters will be ignored.
     treated_as: list[str] = fields.List(fields.String, required=False) # List of card treated-as names to get. If included, other filters will be ignored.
     
-    name_contains: str = fields.String(required=False) # Query string.
-    treated_as_contains: str = fields.String(required=False) # Query string.
-    effect_contains: str = fields.String(required=False) # Query string. 
-    # attribute_contains: str = fields.String(required=False) # Query string. # TODO COMPLICATED?
+    name_contains: str = fields.String(required=False) # Query string to search card names.
+    treated_as_contains: str = fields.String(required=False) # Query string to search card treated-as names.
+    effect_contains: str = fields.String(required=False) # Query string to search card effects. 
+    pen_effect_contains: str = fields.String(required=False) # Query string to search card pendulum effect. 
 
-    ttype: list[str] = fields.List(fields.String, required=False) # List of template types to get (e.g. ['monster', 'spell']).
-    tsubtype: list[str] = fields.List(fields.String, required=False) # List of template subtypes to get (e.g. ['fusion', 'continuous']).
+    # attribute_contains: str = fields.String(required=False) # Query string. # TODO FIXME HOW DO?
 
-    mon_atk: list[int] = fields.List(fields.Integer, required=False) # List of monster attacks to get.
-    mon_atk_max: int = fields.Integer(required=False) # Maximum monster attack to get. Inclusive.
-    mon_atk_min: int = fields.Integer(required=False) # Minimum monster attack to get. Inclusive.
-    mon_atk_include_variadic: bool = fields.Boolean(required=False) # Specifies monster defense searching to include/exclude variadic ("?") attack cards. 
-    mon_def: list[int] = fields.List(fields.Integer, required=False) # List of monster defenses to get.
-    mon_def_max: int = fields.Integer(required=False) # Maximum monster defense to get. Inclusive.
-    mon_def_min: int = fields.Integer(required=False) # Minimum monster defense to get. Inclusive.
-    mon_def_include_variadic: bool = fields.Boolean(required=False) # Specifies monster defense searching to include/exclude variadic ("?") defense cards. 
+    t_type: list[str] = fields.List(fields.String, required=False) # List of card template types to get (e.g. ['Monster', 'Spell']).
+    t_type_id: list[int] = fields.List(fields.Integer, required=False) # List of card template type ids to get (e.g. [1, 2]).
+    t_subtype: list[str] = fields.List(fields.String, required=False) # List of card template subtypes to get (e.g. ['Fusion', 'Continuous']).
+    t_subtype_id: list[int] = fields.List(fields.Integer, required=False) # List of card template subtype ids to get (e.g. [7, 8]).
+
+    mon_atk: list[int] = fields.List(fields.Integer, required=False) # List of monster attacks to get (e.g. [100, 200, 4000]).
+    mon_atk_max: int = fields.Integer(required=False) # Maximum monster attack to get. Inclusive (e.g. 4000).
+    mon_atk_min: int = fields.Integer(required=False) # Minimum monster attack to get. Inclusive (e.g. 100).
+    mon_atk_variadic: bool = fields.Boolean(required=False, missing=False) # Whether to include/exclude variadic ("?") attack cards. Defaults to `False`.
+    mon_def: list[int] = fields.List(fields.Integer, required=False) # List of monster defenses to get (e.g. [100, 200, 4000]).
+    mon_def_max: int = fields.Integer(required=False) # Maximum monster defense to get. Inclusive (e.g. 4000).
+    mon_def_min: int = fields.Integer(required=False) # Minimum monster defense to get. Inclusive (e.g. 100).
+    mon_def_variadic: bool = fields.Boolean(required=False, missing=False) # Whether to include/exclude variadic ("?") defense cards. Defaults to `False`.
     mon_level: list[int] = fields.List(fields.Integer, required=False) # List of monster levels to get (e.g. [1, 2, 10]).
-    mon_level_max: int = fields.Integer(required=False) # Maximum monster level to get. Inclusive.
-    mon_level_min: int = fields.Integer(required=False) # Minimum monster level to get. Inclusive.
+    mon_level_max: int = fields.Integer(required=False) # Maximum monster level to get. Inclusive (e.g. 7).
+    mon_level_min: int = fields.Integer(required=False) # Minimum monster level to get. Inclusive (e.g. 2).
+    mon_level_not: bool = fields.Boolean(required=False, missing=False) # Makes `mon_level` exclusive rather than inclusive. Defaults to `False`.
 
-    mon_level_not: bool = fields.Boolean(required=False, missing=False) # Toggles monster level searching to exclude all in `mon_level`.
     pen_scale: list[int] = fields.List(fields.Integer, required=False) # List of pendulum scales to get.
     pen_scale_max: int = fields.Integer(required=False) # Maximum pendulum scale to get. Inclusive.
     pen_scale_min: int = fields.Integer(required=False) # Minimum pendulum scale to get. Inclusive.
-
-    pen_effect_contains: list[str] = fields.List(fields.String, required=False) # List of strings to search pendulum effects for. Defaults to "or" searching unless `pen_effect_contains_all` is set to `True`.
-    pen_effect_contains_all: bool = fields.Boolean(required=False, missing=False) # Toggles card pendulum effect search mode to "all" filtering (e.g. input ['foo', 'bar'] will match "foo bar" but not "foo"). Defaults to "or" filtering (e.g. input ['foo', 'bar'] will match "foo bar", "foo", or "bar").
-    pen_effect_contains_sequence: bool = fields.Boolean(required=False, missing=False) # Toggles card pendulum effect search mode to "sequence" filtering (e.g. input ['foo', 'bar'] will match "foo ... bar" but not "foo. bar.", where "..." represents any run of characters that does not contain a period). Defaults to "disconnected" filtering. (e.g. input ['foo', 'bar'] will match "foo bar", "foo. bar", "foo", or "bar").
-    pen_effect_contains_ci: bool = fields.Boolean(required=False, missing=True) # Toggles card pendulum effect search mode to "case-insensitive" filtering (e.g. input ['foo', 'bar'] will match "FOO bar" but not "foo").
-    not_pen_effect_contains: list[str] = fields.List(fields.String, required=False) # Same deal, but exclusion.
-    not_pen_effect_contains_all: bool = fields.Boolean(required=False, missing=False) # Same deal, but exclusion.
-    not_pen_effect_contains_sequence: bool = fields.Boolean(required=False, missing=False) # Same deal, but exclusion.
-    not_pen_effect_contains_ci: bool = fields.Boolean(required=False, missing=True) # Same deal, but exclusion.
     
     link_arrow_indices: list[int] = fields.List(fields.Integer, required=False) # List of link arrow indices to get (e.g. [0, 4] for up-left and/or down-right). You should use this in combination with `mon_level` to be more specific.
 
     format: list[str] = fields.List(fields.String, required=False) # List of card formats the gotten card may be in. Defaults to "or" searching unless `format_contains_all` is set to `True`.
     format_exact: bool = fields.Boolean(required=False, missing=False) # Toggles card format search mode to "exact" filtering (e.g. input ['ocg', 'exu'] will match cards *only in* OCG and EXU). Defaults to "or" filtering (e.g. input ['ocg', 'exu'] will match cards in either OCG or EXU).
 
-    created_by_user_id: list[int] = fields.List(fields.Integer, required=False) # List of user ids to get cards created by.
-    created_by_user_name: list[str] = fields.List(fields.String, required=False) # List of user names to get cards created by.
+    created_by_user_id: list[int] = fields.List(fields.Integer, required=False) # List of user ids to get cards created by (e.g. [1, 2, 3]).
+    created_by_user_name: list[str] = fields.List(fields.String, required=False) # List of usernames to get cards created by (e.g. ['user1', 'user2', 'user3']).
 
 
 class Cards(Resource):
     def get(self):
         args = api_call_setup(request=request, schema=Get_Cards_InputSchema)
         query = Card.query
+
+        if args['t_type'] or args['t_subtype']:
+            query = query.join(TemplateType).join(TemplateSubtype)
+        if args['t_subtype'] and not args['t_type']:
+            abort(400, message="t_subtype requires t_type")
+        if args['t_type']:
+            query = query.filter(TemplateType.t_type.in_(args['t_type']))
+        if args['t_subtype']:
+            query = query.filter(TemplateSubtype.t_subtype.in_(args['t_subtype']))
+        if args['t_type_id']:
+            query = query.filter(Card.t_type_id.in_(args['t_type_id']))
+        if args['t_subtype_id']:
+            query = query.filter(Card.t_subtype_id.in_(args['t_subtype_id']))
 
         if args['id']:
             return [c.as_nice_dict() for c in Card.query.filter(Card.id.in_(args['id'])).all()]
@@ -141,10 +115,38 @@ class Cards(Resource):
         if args['effect_contains']:
             query = query.filter(Card.effect.op('regexp')(parse_query_string(args['effect_contains'])))
         if args['treated_as_contains']:
-            query = query.filter(Card.treated_as.op('treated_as')(parse_query_string(args['treated_as_contains'])))
+            query = query.filter(Card.treated_as.op('regexp')(parse_query_string(args['treated_as_contains'])))
 
+        if args['mon_atk']:
+            query = query.filter(Card.mon_atk.in_(args['mon_atk']))
+        if args['mon_atk_max']:
+            query = query.filter(Card.mon_atk <= args['mon_atk_max'])
+        if args['mon_atk_min']:
+            query = query.filter(Card.mon_atk >= args['mon_atk_min'])
+        if not args['mon_atk_variadic']:
+            query = query.filter(Card.mon_atk_variadic == 0)
 
-        return [c.as_nice_dict() for c in query.all()]
+        if args['mon_def']:
+            query = query.filter(Card.mon_def.in_(args['mon_def']))
+        if args['mon_def_max']:
+            query = query.filter(Card.mon_def <= args['mon_def_max'])
+        if args['mon_def_min']:
+            query = query.filter(Card.mon_def >= args['mon_def_min'])
+        if not args['mon_def_variadic']:
+            query = query.filter(Card.mon_def_variadic == 0)
+
+        if any([args['pen_scale'], args['pen_scale_max'], args['pen_scale_min']]):
+            query = query.filter(Card.pen_scale == 1)
+        if args['pen_scale']:
+            query = query.filter(Card.pen_scale.in_(args['pen_scale']))
+        if args['pen_scale_max']:
+            query = query.filter(Card.pen_scale <= args['pen_scale_max'])
+        if args['pen_scale_min']:
+            query = query.filter(Card.pen_scale >= args['pen_scale_min'])
+
+        # TODO: ATTRIBUTES, MONSTER TYPES, ABILITIES, LINK ARROWS, FORMAT, CREATED BY %, 
+
+        return [c.as_nice_dict() for c in cast(list[Card], query.all())]
 
     def post(self):
         # USER:PLAIN_PASS VALIDATION OR SESSION TOKEN VALIDATION 

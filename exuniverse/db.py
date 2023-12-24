@@ -28,14 +28,14 @@ class User(ModelRepr_BaseClass, flask_db.Model, UserMixin):
 
 class TemplateType(ModelRepr_BaseClass, flask_db.Model):
     id              = flask_db.Column(flask_db.Integer, primary_key=True, autoincrement=True)
-    ttype           = flask_db.Column(flask_db.String(20, collation='NOCASE'), nullable=False) # eg "monster", "spell", "trap"
-    ttype_subtypes  = flask_db.relationship('TemplateSubtype', backref='template_type', lazy=True)
+    t_type           = flask_db.Column(flask_db.String(20, collation='NOCASE'), nullable=False) # eg "monster", "spell", "trap"
+    t_type_subtypes  = flask_db.relationship('TemplateSubtype', backref='template_type', lazy='joined')
 
 
 class TemplateSubtype(ModelRepr_BaseClass, flask_db.Model):
     id              = flask_db.Column(flask_db.Integer, primary_key=True, autoincrement=True)
-    ttype_id        = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_type.id'), nullable=False)
-    tsubtype        = flask_db.Column(flask_db.String(20, collation='NOCASE'), nullable=False) # eg "normal", "effect", "pendulum"
+    t_type_id        = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_type.id'), nullable=False)
+    t_subtype        = flask_db.Column(flask_db.String(20, collation='NOCASE'), nullable=False) # eg "normal", "effect", "pendulum"
 
 
 class Card(ModelRepr_BaseClass, flask_db.Model):
@@ -45,15 +45,17 @@ class Card(ModelRepr_BaseClass, flask_db.Model):
     effect          = flask_db.Column(flask_db.Text(collation='NOCASE'), nullable=True)
     pic_link        = flask_db.Column(flask_db.Text, nullable=True)
 
-    ttype_id        = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_type.id'), nullable=False) # eg "spell"'s id
-    tsubtype_id     = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_subtype.id'), nullable=False) #eg "normal"'s id
+    t_type_id        = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_type.id'), nullable=False) # eg "spell"'s id
+    t_type           = flask_db.relationship('TemplateType', backref='cards', lazy='joined')
+    t_subtype_id     = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_subtype.id'), nullable=False) #eg "normal"'s id
+    t_subtype        = flask_db.relationship('TemplateSubtype', backref='cards', lazy='joined')
 
     attributes      = flask_db.Column(flask_db.String(MAX_AT_AB_MT_LENGTH), nullable=True) # "000000" for nothing, order: dark earth fire light water wind
 
     mon_atk         = flask_db.Column(flask_db.Integer, nullable=True)
-    mon_a_variadic  = flask_db.Column(flask_db.Boolean, nullable=True, default=0)
+    mon_atk_variadic= flask_db.Column(flask_db.Boolean, nullable=True, default=0)
     mon_def         = flask_db.Column(flask_db.Integer, nullable=True)
-    mon_d_variadic  = flask_db.Column(flask_db.Boolean, nullable=True, default=0)
+    mon_def_variadic= flask_db.Column(flask_db.Boolean, nullable=True, default=0)
     mon_level       = flask_db.Column(flask_db.Integer, nullable=True)
     mon_abilities   = flask_db.Column(flask_db.String(MAX_AT_AB_MT_LENGTH), nullable=True) # "000000" for nothing, order: flip gemini spirit toon tunter union
     mon_types       = flask_db.Column(flask_db.String(MAX_AT_AB_MT_LENGTH), nullable=True) # "000000000000000000000000" for nothing, order: aqua beast beast-warrior creator god cyberse dinosaur divine-beast dragon fairy fiend fish illusion insect machine plant psychic pyro reptile rock sea serpent spellcaster thunder warrior winged beast wyrm zombie
@@ -74,15 +76,15 @@ class Card(ModelRepr_BaseClass, flask_db.Model):
     version_history = flask_db.relationship('CardVersionHistory', backref='card', lazy=True)
     cardpools       = flask_db.relationship('Cardpool', backref='card', lazy=True)
 
-    def as_nice_dict(self) -> str:
+    def as_nice_dict(self) -> dict:
         d = self.as_dict()
         
-        d['tsubtype'] = TemplateSubtype.query.get(self.tsubtype_id).tsubtype
-        d['ttype'] = TemplateType.query.get(self.ttype_id).ttype
+        d['t_subtype'] = TemplateSubtype.query.get(self.t_subtype_id).t_subtype
+        d['t_type'] = TemplateType.query.get(self.t_type_id).t_type
         
-        d['mon_types'] = DBConverter.str_to_list("monster_type", d['mon_types'])
-        d['attributes'] = DBConverter.str_to_list("attribute", d['attributes'])
-        d['mon_abilities'] = DBConverter.str_to_list("ability", d['mon_abilities'])
+        d['mon_types'] = DBConverter.binarystr_to_list("monster_type", d['mon_types'])
+        d['attributes'] = DBConverter.binarystr_to_list("attribute", d['attributes'])
+        d['mon_abilities'] = DBConverter.binarystr_to_list("ability", d['mon_abilities'])
         
         d['date_updated'] = d['date_updated'].isoformat() if d['date_updated'] else None
         d['date_created'] = d['date_created'].isoformat() if d['date_created'] else None
@@ -125,13 +127,13 @@ def card_port_to_version_history(mapper, connection, target):
             treated_as=original_values['treated_as'],
             effect=original_values['effect'],
             pic_link=original_values['pic_link'],
-            ttype_id=original_values['ttype_id'],
-            tsubtype_id=original_values['tsubtype_id'],
+            t_type_id=original_values['t_type_id'],
+            t_subtype_id=original_values['t_subtype_id'],
             attributes=original_values['attributes'],
             mon_atk=original_values['mon_atk'],
-            mon_a_variadic=original_values['mon_a_variadic'],
+            mon_atk_variadic=original_values['mon_atk_variadic'],
             mon_def=original_values['mon_def'],
-            mon_d_variadic=original_values['mon_d_variadic'],
+            mon_def_variadic=original_values['mon_def_variadic'],
             mon_level=original_values['mon_level'],
             mon_abilities=original_values['mon_abilities'],
             mon_types=original_values['mon_types'],
@@ -181,15 +183,16 @@ class CardVersionHistory(ModelRepr_BaseClass, flask_db.Model):
     effect          = flask_db.Column(flask_db.Text(collation='NOCASE'), nullable=True)
     pic_link        = flask_db.Column(flask_db.Text, nullable=True)
 
-    ttype_id        = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_type.id'), nullable=False) # eg "spell"'s id
-    tsubtype_id     = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_subtype.id'), nullable=False) #eg "normal"'s id
-
+    t_type_id        = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_type.id'), nullable=False) # eg "spell"'s id
+    t_type           = flask_db.relationship('TemplateType', backref='card_versions', lazy=True)
+    t_subtype_id     = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('template_subtype.id'), nullable=False) #eg "normal"'s id
+    t_subtype           = flask_db.relationship('TemplateSubtype', backref='card_versions', lazy=True)
     attributes      = flask_db.Column(flask_db.String(MAX_AT_AB_MT_LENGTH), nullable=True) # "000000" for nothing, order: dark earth fire light water wind
 
     mon_atk         = flask_db.Column(flask_db.Integer, nullable=True)
-    mon_a_variadic  = flask_db.Column(flask_db.Boolean, nullable=True, default=0)
+    mon_atk_variadic= flask_db.Column(flask_db.Boolean, nullable=True, default=0)
     mon_def         = flask_db.Column(flask_db.Integer, nullable=True)
-    mon_d_variadic  = flask_db.Column(flask_db.Boolean, nullable=True, default=0)
+    mon_def_variadic= flask_db.Column(flask_db.Boolean, nullable=True, default=0)
     mon_level       = flask_db.Column(flask_db.Integer, nullable=True)
     mon_abilities   = flask_db.Column(flask_db.String(MAX_AT_AB_MT_LENGTH), nullable=True) # "000000" for nothing, order: flip gemini spirit toon tunter union
     mon_types       = flask_db.Column(flask_db.String(MAX_AT_AB_MT_LENGTH), nullable=True) # "000000000000000000000000" for nothing, order: aqua beast beast-warrior creator god cyberse dinosaur divine-beast dragon fairy fiend fish illusion insect machine plant psychic pyro reptile rock sea serpent spellcaster thunder warrior winged beast wyrm zombie
