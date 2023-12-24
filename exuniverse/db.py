@@ -69,6 +69,9 @@ class Card(ModelRepr_BaseClass, flask_db.Model):
     date_deleted    = flask_db.Column(flask_db.DateTime(timezone=False), nullable=True)
 
     version_history = flask_db.relationship('CardVersionHistory', backref='card', lazy=True)
+    cardpools       = flask_db.relationship('Cardpool', backref='card', lazy=True)
+
+
 @event.listens_for(Card, 'before_insert')
 def card_set_mon_a_d_variadic(mapper, connection, target):
     if target.mon_atk is None:
@@ -119,7 +122,8 @@ def card_port_to_version_history(mapper, connection, target):
             pen_effect=original_values['pen_effect'],
             link_arrows=original_values['link_arrows'],
             serial_number=original_values['serial_number'],
-            created_by_uid=original_values['created_by_uid']
+            created_by_uid=original_values['created_by_uid'],
+            date_introduced=(original_values['date_updated'] or original_values['date_created']),
         )
     )
 
@@ -137,6 +141,8 @@ class Cardpool(ModelRepr_BaseClass, flask_db.Model):
 
     date_created    = flask_db.Column(flask_db.DateTime(timezone=False), server_default=func.now()) # utcnow
     date_updated    = flask_db.Column(flask_db.DateTime(timezone=False), nullable=True)
+
+    
 @event.listens_for(Cardpool, 'after_update')
 def cardpool_update_date_updated(mapper, connection, target):
     connection.execute(
@@ -149,7 +155,8 @@ def cardpool_update_date_updated(mapper, connection, target):
 class CardVersionHistory(ModelRepr_BaseClass, flask_db.Model):
     row_id          = flask_db.Column(flask_db.Integer, primary_key=True, autoincrement=True)
     card_id         = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('card.id'), nullable=False)
-    version_created = flask_db.Column(flask_db.DateTime(timezone=False), server_default=func.now()) # utcnow
+    date_introduced = flask_db.Column(flask_db.DateTime(timezone=False), nullable=False)
+    date_obsoleted  = flask_db.Column(flask_db.DateTime(timezone=False), server_default=func.now()) # utcnow
 
     name            = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH), nullable=False)
     treated_as      = flask_db.Column(flask_db.String(MAX_CARD_NAME_LENGTH), nullable=True)

@@ -74,6 +74,7 @@ class UserRegister(Resource):
 
 class Get_Cards_InputSchema(Schema):
     id: list[int] = fields.List(fields.Integer, required=False) # List of card ids to get. If included, other filters will be ignored.
+
     treated_as: list[str] = fields.List(fields.String, required=False) # List of card treated-as names to get.
 
     name: list[str] = fields.List(fields.String, required=False) # List of card names to get.
@@ -136,7 +137,10 @@ class Get_Cards_InputSchema(Schema):
 
 class Cards(Resource):
     def get(self):
-        ...
+        args = api_call_setup(request=request, schema=Get_Cards_InputSchema)
+
+        if args['id']:
+            return Card.query.filter(Card.id.in_(args['id'])).all()
 
     def post(self):
         # USER:PLAIN_PASS VALIDATION OR SESSION TOKEN VALIDATION 
