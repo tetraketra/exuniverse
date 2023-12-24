@@ -46,11 +46,11 @@ class Get_Cards_InputSchema(Schema):
     id: list[int] = fields.List(fields.Integer, required=False) # List of card ids to get. If included, other filters will be ignored.
     name: list[str] = fields.List(fields.String, required=False) # List of card names to get. If included, other filters will be ignored.
     treated_as: list[str] = fields.List(fields.String, required=False) # List of card treated-as names to get. If included, other filters will be ignored.
-    
+
     name_contains: str = fields.String(required=False) # Query string to search card names.
     treated_as_contains: str = fields.String(required=False) # Query string to search card treated-as names.
-    effect_contains: str = fields.String(required=False) # Query string to search card effects. 
-    pen_effect_contains: str = fields.String(required=False) # Query string to search card pendulum effect. 
+    effect_contains: str = fields.String(required=False) # Query string to search card effects.
+    pen_effect_contains: str = fields.String(required=False) # Query string to search card pendulum effect.
 
     # attribute_contains: str = fields.String(required=False) # Query string. # TODO FIXME HOW DO?
 
@@ -75,7 +75,7 @@ class Get_Cards_InputSchema(Schema):
     pen_scale: list[int] = fields.List(fields.Integer, required=False) # List of pendulum scales to get.
     pen_scale_max: int = fields.Integer(required=False) # Maximum pendulum scale to get. Inclusive.
     pen_scale_min: int = fields.Integer(required=False) # Minimum pendulum scale to get. Inclusive.
-    
+
     link_arrow_indices: list[int] = fields.List(fields.Integer, required=False) # List of link arrow indices to get (e.g. [0, 4] for up-left and/or down-right). You should use this in combination with `mon_level` to be more specific.
 
     format: list[str] = fields.List(fields.String, required=False) # List of card formats the gotten card may be in. Defaults to "or" searching unless `format_contains_all` is set to `True`.
@@ -144,12 +144,12 @@ class Cards(Resource):
         if args['pen_scale_min']:
             query = query.filter(Card.pen_scale >= args['pen_scale_min'])
 
-        # TODO: ATTRIBUTES, MONSTER TYPES, ABILITIES, LINK ARROWS, FORMAT, CREATED BY %, 
+        # TODO: ATTRIBUTES, MONSTER TYPES, ABILITIES, LINK ARROWS, FORMAT, CREATED BY %,
 
         return [c.as_nice_dict() for c in cast(list[Card], query.all())]
 
     def post(self):
-        # USER:PLAIN_PASS VALIDATION OR SESSION TOKEN VALIDATION 
+        # USER:PLAIN_PASS VALIDATION OR SESSION TOKEN VALIDATION
         ...
 
     def put(self):

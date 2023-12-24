@@ -125,7 +125,7 @@ class DBConverter:
 
         return ref.TTYPES.index(ttype) + 1
 
-    
+
 
 
 def abort_with_info(
@@ -177,13 +177,13 @@ def api_call_setup(
 
 
 def consume(
-    iterator: Iterator, 
+    iterator: Iterator,
     n: int
 ) -> None:
     """
     Advance the iterator n-steps ahead. If n is none, consume entirely.
     """
-    
+
     deque(it.islice(iterator, n), maxlen=0)
 
 
@@ -210,7 +210,7 @@ def parse_query_string(
     regex = ""
 
     for i, char in enumerate(query_string):
-        
+
         if char == '[':
             regex += "(?i)" if 'i' in query_string[max(0, i - 2):i] else "(?-i)" # case sensitivity
             regex += "(?!.*" if '!' in query_string[max(0, i - 2):i] else "(?=.*" # negation

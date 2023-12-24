@@ -78,19 +78,19 @@ class Card(ModelRepr_BaseClass, flask_db.Model):
 
     def as_nice_dict(self) -> dict:
         d = self.as_dict()
-        
+
         d['t_subtype'] = TemplateSubtype.query.get(self.t_subtype_id).t_subtype
         d['t_type'] = TemplateType.query.get(self.t_type_id).t_type
-        
+
         d['mon_types'] = DBConverter.binarystr_to_list("monster_type", d['mon_types'])
         d['attributes'] = DBConverter.binarystr_to_list("attribute", d['attributes'])
         d['mon_abilities'] = DBConverter.binarystr_to_list("ability", d['mon_abilities'])
-        
+
         d['date_updated'] = d['date_updated'].isoformat() if d['date_updated'] else None
         d['date_created'] = d['date_created'].isoformat() if d['date_created'] else None
 
         return d
-        
+
 
 @event.listens_for(Card, 'before_insert')
 def card_set_mon_a_d_variadic(mapper, connection, target):
@@ -162,7 +162,7 @@ class Cardpool(ModelRepr_BaseClass, flask_db.Model):
     date_created    = flask_db.Column(flask_db.DateTime(timezone=False), server_default=func.now()) # utcnow
     date_updated    = flask_db.Column(flask_db.DateTime(timezone=False), nullable=True)
 
-    
+
 @event.listens_for(Cardpool, 'after_update')
 def cardpool_update_date_updated(mapper, connection, target):
     connection.execute(
