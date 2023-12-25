@@ -29,7 +29,7 @@ The following endpoints accept the following inputs in the request body as JSON:
  - `pen_effect_contains: str`, query string to search card pendulum effect. See [Query Strings](#query-strings).
  - `attributes_include: list[str]`, list of card attributes to include in the result (e.g. ['DARK', 'EARTH']).
  - `attributes_exclude: list[str]`, list of card attributes to exclude from the result (e.g. ['DARK', 'EARTH']).
- - `mon_abilities_include: list[str]`, list of card monster abilities to include in the result (e.g. ['FLIP', 'TUNER']).
+ - `mon_abilities_include: list[str]`, list of card monster abilities to include in the result (e.g. ['Flip', 'Tuner']).
  - `mon_abilities_exclude: list[str]`, list of card monster abilities to exclude from the result.
  - `mon_types_include: list[str]`, list of card monster types to include in the result.
  - `mon_types_exclude: list[str]`, list of card monster types to exclude from the result.

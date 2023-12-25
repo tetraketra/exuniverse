@@ -47,7 +47,7 @@ class Get_CardsNames_InputSchema(Schema):
 
 class CardsNames(Resource):
     def get(self):
-        args  = api_call_setup(request=request, schema=Get_CardNames_InputSchema)
+        args  = api_call_setup(request=request, schema=Get_CardsNames_InputSchema)
         query = Card.query
 
         if args['name']:
@@ -71,7 +71,7 @@ class Get_Cards_InputSchema(Schema):
 
     attributes_include: list[str] = fields.String(required=False, missing=[]) # List of card attributes to include in the result (e.g. ['DARK', 'EARTH']).
     attributes_exclude: list[str] = fields.String(required=False, missing=[]) # List of card attributes to exclude from the result (e.g. ['DARK', 'EARTH']).
-    mon_abilities_include: list[str] = fields.String(required=False, missing=[]) # List of card monster abilities to include in the result (e.g. ['FLIP', 'TUNER']).
+    mon_abilities_include: list[str] = fields.String(required=False, missing=[]) # List of card monster abilities to include in the result (e.g. ['Flip', 'Tuner']).
     mon_abilities_exclude: list[str] = fields.String(required=False, missing=[]) # List of card monster abilities to exclude from the result.
     mon_types_include: list[str] = fields.String(required=False, missing=[]) # List of card monster types to include in the result.
     mon_types_exclude: list[str] = fields.String(required=False, missing=[]) # List of card monster types to exclude from the result.
