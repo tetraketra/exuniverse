@@ -40,7 +40,7 @@ class UserRegister(Resource):
             abort_with_info(args=args, er=er, source=self.post)
 
 
-class Get_CardNames_InputSchema(Schema):
+class Get_CardsNames_InputSchema(Schema):
     name: list[str] = fields.List(fields.String, required=False, missing=[]) # List of card names to get.
     name_contains: str = fields.String(required=False) # Query string to search card names.
 

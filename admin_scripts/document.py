@@ -84,5 +84,3 @@ parentheses `()` to indicate logical condition groupings. For example:
 with open("README.md", "w") as fh:
     fh.write(header)
 
-print(header)
-

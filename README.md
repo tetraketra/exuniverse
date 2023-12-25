@@ -15,6 +15,10 @@ The following endpoints accept the following inputs in the request body as JSON:
  - `password: str`, required plain password of the new user.
  - `email: str`, required unique email of the new user.
 
+`GET https://exuniverse.net/cards/names`
+ - `name: list[str]`, list of card names to get.
+ - `name_contains: str`, query string to search card names. See [Query Strings](#query-strings).
+
 `GET https://exuniverse.net/cards`
  - `id: list[int]`, list of card ids to get. If included, other filters will be ignored.
  - `name: list[str]`, list of card names to get. If included, other filters will be ignored.
