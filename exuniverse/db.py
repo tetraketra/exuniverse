@@ -61,11 +61,13 @@ class Card(ModelRepr_BaseClass, flask_db.Model):
     mon_types       = flask_db.Column(flask_db.String(MAX_AT_AB_MT_LENGTH), nullable=True) # "000000000000000000000000" for nothing, order: aqua beast beast-warrior creator god cyberse dinosaur divine-beast dragon fairy fiend fish illusion insect machine plant psychic pyro reptile rock sea serpent spellcaster thunder warrior winged beast wyrm zombie
 
     pen             = flask_db.Column(flask_db.Boolean, nullable=True, default=0)
-    pen_scale       = flask_db.Column(flask_db.Integer, nullable=True)
+    pen_scale_l     = flask_db.Column(flask_db.Integer, nullable=True)
+    pen_scale_r     = flask_db.Column(flask_db.Integer, nullable=True)
     pen_effect      = flask_db.Column(flask_db.Text(collation='NOCASE'), nullable=True)
 
     link_arrows     = flask_db.Column(flask_db.String(8), nullable=True) # "00000000", read in clockwise spiral from top-left
 
+    rarity          = flask_db.Column(flask_db.Integer, nullable=True) # 1-5
     serial_number   = flask_db.Column(flask_db.Integer, nullable=True)
 
     created_by_uid  = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('user.id'), nullable=True) # null means not created by a person
@@ -138,12 +140,14 @@ def card_port_to_version_history(mapper, connection, target):
             mon_abilities=original_values['mon_abilities'],
             mon_types=original_values['mon_types'],
             pen=original_values['pen'],
-            pen_scale=original_values['pen_scale'],
+            pen_scale_l=original_values['pen_scale_l'],
+            pen_scale_r=original_values['pen_scale_r'],
             pen_effect=original_values['pen_effect'],
             link_arrows=original_values['link_arrows'],
             serial_number=original_values['serial_number'],
             created_by_uid=original_values['created_by_uid'],
             date_introduced=(original_values['date_updated'] or original_values['date_created']),
+            rarity=original_values['rarity']
         )
     )
 
@@ -198,11 +202,13 @@ class CardVersionHistory(ModelRepr_BaseClass, flask_db.Model):
     mon_types       = flask_db.Column(flask_db.String(MAX_AT_AB_MT_LENGTH), nullable=True) # "000000000000000000000000" for nothing, order: aqua beast beast-warrior creator god cyberse dinosaur divine-beast dragon fairy fiend fish illusion insect machine plant psychic pyro reptile rock sea serpent spellcaster thunder warrior winged beast wyrm zombie
 
     pen             = flask_db.Column(flask_db.Boolean, nullable=True, default=0)
-    pen_scale       = flask_db.Column(flask_db.Integer, nullable=True)
+    pen_scale_l     = flask_db.Column(flask_db.Integer, nullable=True)
+    pen_scale_r     = flask_db.Column(flask_db.Integer, nullable=True)
     pen_effect      = flask_db.Column(flask_db.Text(collation='NOCASE'), nullable=True)
 
     link_arrows     = flask_db.Column(flask_db.String(8), nullable=True) # "00000000", read in clockwise spiral from top-left
 
+    rarity          = flask_db.Column(flask_db.Integer, nullable=True) # 1-5
     serial_number   = flask_db.Column(flask_db.Integer, nullable=True)
 
     created_by_uid  = flask_db.Column(flask_db.Integer, flask_db.ForeignKey('user.id'), nullable=True) # null means not created by a person

@@ -74,60 +74,6 @@ def get_class_names_from_file(
     return classes
 
 
-class DBConverter:
-
-    @staticmethod
-    def get_order(
-        converter: Literal['attribute', 'ability', 'monster_type']
-    ) -> list[str]:
-
-        match converter:
-            case 'attribute':
-                return ref.ATTRIBUTES
-            case 'ability':
-                return ref.ABILITIES
-            case 'monster_type':
-                return ref.MONSTER_TYPES
-
-
-    @staticmethod
-    def binarystr_to_list(
-        converter: Literal['attribute', 'ability', 'monster_type'],
-        value: str
-    ) -> list[str]:
-
-        order = DBConverter.get_order(converter)
-
-        if len(order) != len(value):
-            raise ValueError(f"Expected {len(order)} bits, got {len(value)}!")
-
-        return [atr for atr, digit in zip(order, value) if digit == '1']
-
-
-    @staticmethod
-    def list_to_binarystr(
-        converter: Literal['attribute', 'ability', 'monster_type'],
-        value: list[str]
-    ) -> str:
-
-        order = DBConverter.get_order(converter)
-
-        if len(order) != len(value):
-            raise ValueError(f"Expected {len(order)} bits, got {len(value)}!")
-
-        return ''.join([('1' if atr in value else '0') for atr in order])
-
-
-    @staticmethod
-    def ttype_to_ttype_id(
-        ttype: str
-    ) -> int:
-
-        return ref.TTYPES.index(ttype) + 1
-
-
-
-
 def abort_with_info(
     args: defaultdict, er: Exception, source: Callable
 ) -> None:
@@ -187,50 +133,117 @@ def consume(
     deque(it.islice(iterator, n), maxlen=0)
 
 
-def parse_query_string(
-    query_string: str
-) -> str:
-    """
-    Parses a query string (see documentation) into a regex pattern.
 
-    Query strings use square brackets `[]` to indicate text matching groups and
-    parentheses `()` to indicate logical condition groupings. For example:
-    `[FOO BAR]` `[FOO*BAR]` `[FOO**BAR]` `i[FOO**BAR]` `[FOO**BAR] & i[FOO*BAR]`
-    `[FOO*BAR] | !i[FOO**BAR]` `([FOO**BAR] & i[FOO*BAR]) | [BAR BASH]`
-    - `[` and `]` indicate text matching groups.
-    - `(` and `)` clarify logical condition groupings.
-    - `|` indicates logical or.
-    - `&` indicates logical and.
-    - `i` indicates case-insensitive matching for the following match group.
-    - `!` indicates negation for the following match group.
-    - `*` matches any number of characters between the left and right characters.
-    - `**` matches any number of characters between the left and right characters, excluding periods.
-    """
+class DBConverter:
 
-    regex = ""
+    @staticmethod
+    def get_order(
+        converter: Literal['attribute', 'ability', 'monster_type']
+    ) -> list[str]:
 
-    for i, char in enumerate(query_string):
+        match converter:
+            case 'attribute':
+                return ref.ATTRIBUTES
+            case 'ability':
+                return ref.ABILITIES
+            case 'monster_type':
+                return ref.MONSTER_TYPES
 
-        if char == '[':
-            regex += "(?i)" if 'i' in query_string[max(0, i - 2):i] else "(?-i)" # case sensitivity
-            regex += "(?!.*" if '!' in query_string[max(0, i - 2):i] else "(?=.*" # negation
 
-            mtch_len = query_string[i:].index(']')
-            mtch = query_string[(i+1):(i + mtch_len)] # match group within brackets
+    @staticmethod
+    def binarystr_to_list(
+        converter: Literal['attribute', 'ability', 'monster_type'],
+        value: str
+    ) -> list[str]:
 
-            iterator = mit.peekable(mtch)
-            for mtch_char in iterator:
-                if mtch_char == '*':
-                    if iterator.peek(' ') == '*':
-                        regex += "[^\\.]*"
-                        consume(iterator, 1)
+        order = DBConverter.get_order(converter)
 
-                else:
-                    regex += re.escape(mtch_char)
+        if len(order) != len(value):
+            raise ValueError(f"Expected {len(order)} bits, got {len(value)}!")
 
-            regex += ")"
+        return [at_ab_mt for at_ab_mt, digit in zip(order, value) if digit == '1']
 
-        if char in ('|', '(', ')'):
-            regex += char
 
-    return regex
+    @staticmethod
+    def list_to_binarystr(
+        converter: Literal['attribute', 'ability', 'monster_type'],
+        value: list[str]
+    ) -> str:
+
+        order = DBConverter.get_order(converter)
+
+        return ''.join([('1' if at_ab_mt in value else '0') for at_ab_mt in order])
+
+
+    @staticmethod
+    def ttype_to_ttype_id(
+        ttype: str
+    ) -> int:
+
+        return ref.TTYPES.index(ttype) + 1
+    
+
+regex_pattern = NewType('regex_pattern', str)
+class RegexConstructors:
+
+    @staticmethod
+    def parse_include_exclude(
+        converter: Literal['attribute', 'ability', 'monster_type'],
+        include: list[str] = [],
+        exclude: list[str] = []
+    ) -> regex_pattern:
+
+        order = DBConverter.get_order(converter)
+        
+        return ''.join([('1' if at_ab_mt in include else ('0' if at_ab_mt in exclude else '.')) for at_ab_mt in order])
+
+    @staticmethod
+    def parse_query_string(
+        query_string: str
+    ) -> regex_pattern:
+        """
+        Parses a query string (see documentation) into a regex pattern.
+
+        Query strings use square brackets `[]` to indicate text matching groups and
+        parentheses `()` to indicate logical condition groupings. For example:
+        `[FOO BAR]` `[FOO*BAR]` `[FOO**BAR]` `i[FOO**BAR]` `[FOO**BAR] & i[FOO*BAR]`
+        `[FOO*BAR] | !i[FOO**BAR]` `([FOO**BAR] & i[FOO*BAR]) | [BAR BASH]`
+        - `[` and `]` indicate text matching groups.
+        - `(` and `)` clarify logical condition groupings.
+        - `|` indicates logical or.
+        - `&` indicates logical and.
+        - `i` indicates case-insensitive matching for the following match group.
+        - `!` indicates negation for the following match group.
+        - `*` matches any number of characters between the left and right characters.
+        - `**` matches any number of characters between the left and right characters, excluding periods.
+        """
+
+        regex = ""
+
+        for i, char in enumerate(query_string):
+
+            if char == '[':
+                regex += "(?i)" if 'i' in query_string[max(0, i - 2):i] else "(?-i)" # case sensitivity
+                regex += "(?!.*" if '!' in query_string[max(0, i - 2):i] else "(?=.*" # negation
+
+                mtch_len = query_string[i:].index(']')
+                mtch = query_string[(i+1):(i + mtch_len)] # match group within brackets
+
+                iterator = mit.peekable(mtch)
+                for mtch_char in iterator:
+                    if mtch_char == '*':
+                        if iterator.peek(' ') == '*':
+                            regex += "[^\\.]*"
+                            consume(iterator, 1)
+                        else:
+                            regex += ".*"
+
+                    else:
+                        regex += re.escape(mtch_char)
+
+                regex += ")"
+
+            if char in ('|', '(', ')'):
+                regex += char
+
+        return regex

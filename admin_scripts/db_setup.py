@@ -54,10 +54,12 @@ if DO_TESTING_CARDS:
                 mon_level=r.randint(0, 10),
                 mon_abilities=''.join(mit.padded([str(r.choice([0, 1])) for _ in range(10)], '0', MAX_AT_AB_MT_LENGTH)),
                 mon_types=''.join(mit.padded([str(r.choice([0, 1])) for _ in range(10)], '0', MAX_AT_AB_MT_LENGTH)),
-                pen_scale=r.randint(0, 10),
+                pen_scale_l=r.randint(0, 10),
+                pen_scale_r=r.randint(0, 10),
                 pen_effect=''.join(r.choice(string.ascii_letters + string.digits) for _ in range(10)) + "."*r.choice([0,1]) + ''.join(r.choice(string.ascii_letters + string.digits) for _ in range(10)),
                 link_arrows=''.join(str(r.choice([0, 1])) for _ in range(8)),
-                pen=r.choice([0, 1])
+                pen=r.choice([0, 1]),
+                rarity=r.randint(1, 5),
             )
 
             flask_db.session.add(new_card)
